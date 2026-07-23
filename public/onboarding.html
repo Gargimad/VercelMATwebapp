@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JCHS Mu Alpha Theta Onboarding</title>
+    <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+
+    <form id="onboardingForm" action="/submit-onboarding" method="POST">
+        
+        <div class="card active" id="step1">
+            <h2>Welcome to JCHS Mu Alpha Theta</h2>
+            <h4>Johns Creek High School's Math Tutoring Platform</h4>
+            <p>What is your name?</p>
+            <input type="text" id="username" name="username" placeholder="Enter your full name" required>
+            <button type="button" onclick="nextStep(1, 2)">Next Step</button>
+        </div>
+
+        <div class="card" id="step2">
+            <h2>What's your role?</h2>
+            <select name="role" style="width: 100%; padding: 12px; margin-bottom: 20px; border-radius: 6px; border: 1px solid #ccc;">
+                <option value="tutor">Tutor</option>
+                <option value="tutee">Tutee</option>
+                <option value="both">Both (Tutee & Tutor)</option>
+                <option value="admin">School Admin</option>
+            </select>
+            <button type="button" onclick="nextStep(2, 3)">Next Step</button>
+        </div>
+
+        <div class="card" id="step3">
+            <h2>What class would you like to get tutored in / tutor?</h2>
+            <select name="subject" style="width: 100%; padding: 12px; margin-bottom: 20px; border-radius: 6px; border: 1px solid #ccc;">
+                <option value="Algebra">Algebra</option>
+                <option value="Algebra H">Algebra H</option>
+                <option value="Advanced Algebra">Advanced Algebra</option>
+                <option value="Precalculus">Precalculus</option>
+                <option value="AP Precalculus">AP Precalculus</option>
+                <option value="AP Calculus AB">AP Calculus AB</option>
+                <option value="AP Calculus BC">AP Calculus BC</option>
+                <option value="AP Statistics">AP Statistics</option>
+                <option value="AMDM">AMDM</option>
+            </select>
+            <button type="button" onclick="nextStep(3, 4)">Next Step</button>
+        </div>
+
+        <div class="card" id="step4">
+            <h2>Perfect!</h2>
+            <p>Click below to complete onboarding and enter your dashboard.</p>
+            <button type="submit">Complete Onboarding</button>
+        </div>
+
+    </form>
+
+    <script>
+        function nextStep(currentId, nextId) {
+            if (currentId === 1) {
+                const nameInput = document.getElementById('username').value.trim();
+                if (!nameInput) {
+                    alert("Please enter your name to proceed!");
+                    return;
+                }
+            }
+
+            document.getElementById('step' + currentId).classList.remove('active');
+            document.getElementById('step' + nextId).classList.add('active');
+        }
+    </script>
+</body>
+</html>

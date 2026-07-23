@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - JCHS Mu Alpha Theta</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f4f7f6;
+            color: #333;
+            display: flex;
+            min-height: 100vh;
+        }
+
+        .sidebar {
+            width: 260px;
+            background-color: #1e293b;
+            color: white;
+            display: flex;
+            flex-direction: column;
+            padding: 20px;
+            box-sizing: border-box;
+            flex-shrink: 0;
+        }
+        .sidebar-brand {
+            font-size: 20px;
+            font-weight: bold;
+            margin-bottom: 30px;
+            color: #38bdf8;
+            text-align: center;
+        }
+        .sidebar-menu {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            flex-grow: 1;
+        }
+        .sidebar-item {
+            margin-bottom: 10px;
+        }
+        .sidebar-link {
+            display: block;
+            padding: 12px 15px;
+            color: #cbd5e1;
+            text-decoration: none;
+            border-radius: 6px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background 0.2s, color 0.2s;
+        }
+        .sidebar-link:hover, .sidebar-link.active {
+            background-color: #334155;
+            color: white;
+        }
+        .sidebar-footer {
+            border-top: 1px solid #334155;
+            padding-top: 15px;
+            font-size: 14px;
+        }
+
+        .main-wrapper {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+        }
+
+        .navbar {
+            background-color: #007BFF;
+            color: white;
+            padding: 15px 30px;
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+        .user-badge {
+            background-color: rgba(255, 255, 255, 0.2);
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 14px;
+        }
+
+        .tab-content {
+            display: none;
+            padding: 30px;
+        }
+        .tab-content.active {
+            display: block;
+        }
+
+        .container {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 20px;
+        }
+
+        .dashboard-card {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            margin-bottom: 20px;
+        }
+        .dashboard-card h3 {
+            margin-top: 0;
+            color: #007BFF;
+            border-bottom: 2px solid #f4f7f6;
+            padding-bottom: 10px;
+        }
+        .session-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid #f4f7f6;
+        }
+        .session-item:last-child {
+            border-bottom: none;
+        }
+        .btn {
+            display: inline-block;
+            padding: 10px 15px;
+            background-color: #007BFF;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+            text-decoration: none;
+            margin-top: 10px;
+        }
+        .btn:hover { background-color: #0056b3; }
+
+        .badge {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+        .badge-tutor { background-color: #e3f2fd; color: #0d47a1; }
+        .badge-tutee { background-color: #e8f5e9; color: #1b5e20; }
+        .badge-both { background-color: #f3e5f5; color: #4a148c; }
+        .badge-admin { background-color: #ffebee; color: #b71c1c; }
+
+        /* Dialog Modal Styles */
+        dialog {
+            border: none;
+            border-radius: 8px;
+            padding: 20px;
+            width: 90%;
+            max-width: 400px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+        }
+        dialog::backdrop {
+            background: rgba(0, 0, 0, 0.5);
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-size: 14px;
+        }
+        .form-group input {
+            width: 100%;
+            padding: 8px;
+            box-sizing: border-box;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="sidebar">
+        <div class="sidebar-brand">JCHS Mu Alpha Theta</div>
+        <ul class="sidebar-menu">
+            <li class="sidebar-item"><a class="sidebar-link active" onclick="switchTab('dashboard-tab', this)">Dashboard</a></li>
+            <li class="sidebar-item"><a class="sidebar-link" onclick="switchTab('sessions-tab', this)">Sessions</a></li>
+            <li class="sidebar-item"><a class="sidebar-link" onclick="switchTab('resources-tab', this)">Resources</a></li>
+            <li class="sidebar-item"><a class="sidebar-link" onclick="switchTab('settings-tab', this)">Profile Settings</a></li>
+        </ul>
+        <div class="sidebar-footer">
+            Logged in as: <br>
+            <strong><%= user.username %></strong>
+            <br><br>
+            <a href="/logout" style="color: #f87171; text-decoration: none; font-size: 12px;">Logout</a>
+        </div>
+    </div>
+
+    <div class="main-wrapper">
+        <div class="navbar">
+            <div class="user-badge">
+                <%= user.username %> | <span class="badge badge-<%= user.role %>"><%= user.role %></span>
+            </div>
+        </div>
+
+        <div id="dashboard-tab" class="tab-content active">
+            <div class="container">
+                <div>
+                    <div class="dashboard-card">
+                        <h3>Upcoming Tutoring Sessions</h3>
+                        <div id="session-list">
+                            <% if (sessions.length === 0) { %>
+                                <p style="color: #777;">No sessions scheduled yet.</p>
+                            <% } else { %>
+                                <% sessions.forEach(session => { %>
+                                    <div class="session-item">
+                                        <div>
+                                            <strong><%= session.title %></strong><br>
+                                            <span style="font-size: 12px; color: #666;">Peer: <%= session.peer_name %></span>
+                                        </div>
+                                        <div style="text-align: right;">
+                                            <span><%= session.datetime %></span><br>
+                                            <span style="font-size: 12px; color: #666;"><%= session.location %></span>
+                                        </div>
+                                    </div>
+                                <% }) %>
+                            <% } %>
+                        </div>
+                        <button class="btn" onclick="document.getElementById('sessionModal').showModal()">Schedule a New Session</button>
+                    </div>
+
+                    <div class="dashboard-card">
+                        <h3>Your Performance Analytics</h3>
+                        <p>Focus Area: <strong><%= user.subject %></strong></p>
+                        <p>Total Tutoring Hours Completed: <strong><%= sessions.length * 1.5 %> Hours</strong></p>
+                        <p>Feedback Rating: <strong>5.0 / 5.0 Stars</strong></p>
+                    </div>
+                </div>
+
+                <div>
+                    <div class="dashboard-card">
+                        <h3>Platform Announcements</h3>
+                        <p style="font-size: 14px; line-height: 1.5;">
+                            <strong>Next Club Meeting:</strong> Tuesday after school in Room 312. Attendance is mandatory for all active tutors.
+                        </p>
+                    </div>
+
+                    <div class="dashboard-card">
+                        <h3>Helpful Resources</h3>
+                        <p style="font-size: 14px;"><a href="#" style="color: #007BFF; text-decoration: none;">Mu Alpha Theta Tutor Handbook</a></p>
+                        <p style="font-size: 14px;"><a href="#" style="color: #007BFF; text-decoration: none;">JCHS Math Department Syllabus Archive</a></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="sessions-tab" class="tab-content">
+            <div class="dashboard-card">
+                <h3>All Scheduled Sessions</h3>
+                <p>Manage and view all recorded appointments linked to your account.</p>
+                <ul>
+                    <% sessions.forEach(s => { %>
+                        <li><strong><%= s.title %></strong> with <%= s.peer_name %> at <%= s.location %> (<%= s.datetime %>)</li>
+                    <% }) %>
+                </ul>
+            </div>
+        </div>
+
+        <div id="resources-tab" class="tab-content">
+            <div class="dashboard-card">
+                <h3>Math Learning Resources</h3>
+                <ul>
+                    <li><a href="#">Algebra Practice Worksheets</a></li>
+                    <li><a href="#">AP Calculus Formula Sheets</a></li>
+                    <li><a href="#">Peer Tutoring Guidelines</a></li>
+                </ul>
+            </div>
+        </div>
+
+        <div id="settings-tab" class="tab-content">
+            <div class="dashboard-card">
+                <h3>Profile Settings</h3>
+                <p><strong>Name:</strong> <%= user.username %></p>
+                <p><strong>Role:</strong> <%= user.role %></p>
+                <p><strong>Primary Math Subject:</strong> <%= user.subject %></p>
+            </div>
+        </div>
+
+    </div>
+
+    <dialog id="sessionModal">
+        <h3 style="margin-top: 0;">Schedule a Session</h3>
+        <form id="createSessionForm">
+            <div class="form-group">
+                <label>Topic / Title</label>
+                <input type="text" id="title" required placeholder="e.g., AP Calc BC Prep">
+            </div>
+            <div class="form-group">
+                <label>Peer Name</label>
+                <input type="text" id="peer_name" required placeholder="e.g., Alex Rivera">
+            </div>
+            <div class="form-group">
+                <label>Date & Time</label>
+                <input type="text" id="datetime" required placeholder="e.g., Tomorrow, 3:30 PM">
+            </div>
+            <div class="form-group">
+                <label>Location</label>
+                <input type="text" id="location" required placeholder="e.g., Room 214">
+            </div>
+            <div style="display: flex; gap: 10px; justify-content: flex-end;">
+                <button type="button" class="btn" style="background: #ccc; color: #333;" onclick="document.getElementById('sessionModal').close()">Cancel</button>
+                <button type="submit" class="btn">Save Session</button>
+            </div>
+        </form>
+    </dialog>
+
+    <script>
+        // Sidebar Navigation
+        function switchTab(tabId, element) {
+            document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.sidebar-link').forEach(link => link.classList.remove('active'));
+            
+            document.getElementById(tabId).classList.add('active');
+            element.classList.add('active');
+        }
+
+        // AJAX POST to create session without reloading page
+        document.getElementById('createSessionForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const payload = {
+                title: document.getElementById('title').value,
+                peer_name: document.getElementById('peer_name').value,
+                datetime: document.getElementById('datetime').value,
+                location: document.getElementById('location').value
+            };
+
+            const response = await fetch('/api/sessions', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+
+            if (response.ok) {
+                window.location.reload();
+            }
+        });
+    </script>
+</body>
+</html>
