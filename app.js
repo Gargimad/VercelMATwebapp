@@ -1,39 +1,73 @@
+// Load environment variables locally (ignored automatically in production)
+require('dotenv').config();
+
 const express = require('express');
 const path = require('path');
+const { createClient } = require('@supabase/supabase-js');
+
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-app.use(express.urlencoded({ extended: true }));
+// Initialize Supabase client
+const supabaseUrl = process.env.SUPABASE_URL;
+const supabaseKey = process.env.SUPABASE_ANON_KEY;
+const supabase = createClient(supabaseUrl, supabaseKey);
 
-// FIX 1: Use path.join so Vercel serverless functions can resolve static assets correctly
+// Middleware
+app.use(express.urlencoded({ extended: true }));
+app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
-let users = [];
-
+// Route: Onboarding Page
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'onboarding.html'));
 });
 
-app.post('/submit-onboarding', (req, res) => {
-    const newUser = {
-        id: Date.now().toString(),
-        username: req.body.username,
-        role: req.body.role,
-        subject: req.body.subject
-    };
-    
-    users.push(newUser);
-    res.redirect(`/dashboard?id=${newUser.id}`);
+// Route: Submit Onboarding & Save to Supabase
+app.post('/submit-onboarding', async (req, res) => {
+    const { username, role, subject } = req.body;
+
+    if (!username || !role || !subject) {
+        return res.status(400).send('Missing required onboarding fields.');
+    }
+
+    // Insert user into Supabase "users" table
+    const { data, error } = await supabase
+        .from('users')
+        .insert([{ username, role, subject }])
+        .select()
+        .single();
+
+    if (error) {
+        console.error('Supabase Insert Error:', error.message);
+        return res.status(500).send('Failed to save profile. Please try again.');
+    }
+
+    // Redirect to dashboard using the newly generated Supabase UUID
+    res.redirect(`/dashboard?id=${data.id}`);
 });
 
-app.get('/dashboard', (req, res) => {
+// Route: User Dashboard (Retrieves user from Supabase)
+app.get('/dashboard', async (req, res) => {
     const userId = req.query.id;
-    const user = users.find(u => u.id === userId);
-    
-    if (!user) {
+
+    if (!userId) {
         return res.redirect('/');
     }
-    
+
+    // Fetch user profile from Supabase by ID
+    const { data: user, error } = await supabase
+        .from('users')
+        .select('*')
+        .eq('id', userId)
+        .single();
+
+    if (error || !user) {
+        console.error('Supabase Fetch Error:', error ? error.message : 'User ID not found');
+        return res.redirect('/');
+    }
+
+    // Dynamic HTML Dashboard response
     res.send(`
         <!DOCTYPE html>
         <html lang="en">
@@ -57,10 +91,7 @@ app.get('/dashboard', (req, res) => {
                     justify-content: space-between;
                     align-items: center;
                 }
-                .navbar h1 {
-                    margin: 0;
-                    font-size: 20px;
-                }
+                .navbar h1 { margin: 0; font-size: 20px; }
                 .user-badge {
                     background-color: rgba(255, 255, 255, 0.2);
                     padding: 5px 15px;
@@ -76,9 +107,7 @@ app.get('/dashboard', (req, res) => {
                     gap: 20px;
                 }
                 @media (max-width: 768px) {
-                    .container {
-                        grid-template-columns: 1fr;
-                    }
+                    .container { grid-template-columns: 1fr; }
                 }
                 .dashboard-card {
                     background: white;
@@ -92,29 +121,6 @@ app.get('/dashboard', (req, res) => {
                     color: #007BFF;
                     border-bottom: 2px solid #f4f7f6;
                     padding-bottom: 10px;
-                }
-                .session-item {
-                    display: flex;
-                    justify-content: space-between;
-                    padding: 10px 0;
-                    border-bottom: 1px solid #f4f7f6;
-                }
-                .session-item:last-child {
-                    border-bottom: none;
-                }
-                .btn {
-                    display: inline-block;
-                    padding: 10px 15px;
-                    background-color: #007BFF;
-                    color: white;
-                    text-decoration: none;
-                    border-radius: 4px;
-                    font-size: 14px;
-                    font-weight: bold;
-                    margin-top: 10px;
-                }
-                .btn:hover {
-                    background-color: #0056b3;
                 }
                 .badge {
                     display: inline-block;
@@ -140,49 +146,23 @@ app.get('/dashboard', (req, res) => {
             <div class="container">
                 <div>
                     <div class="dashboard-card">
-                        <h3>Upcoming Tutoring Sessions</h3>
-                        <div class="session-item">
-                            <div>
-                                <strong>Algebra II Help</strong><br>
-                                <span style="font-size: 12px; color: #666;">Tutee: Sarah Jenkins</span>
-                            </div>
-                            <div style="text-align: right;">
-                                <span>Tomorrow, 3:30 PM</span><br>
-                                <span style="font-size: 12px; color: #666;">Room 214</span>
-                            </div>
-                        </div>
-                        <div class="session-item">
-                            <div>
-                                <strong>AP Calculus BC Prep</strong><br>
-                                <span style="font-size: 12px; color: #666;">Tutee: Alex Rivera</span>
-                            </div>
-                            <div style="text-align: right;">
-                                <span>Friday, 4:00 PM</span><br>
-                                <span style="font-size: 12px; color: #666;">School Library</span>
-                            </div>
-                        </div>
-                        <a href="#" class="btn">Schedule a New Session</a>
+                        <h3>Welcome, ${user.username}!</h3>
+                        <p><strong>Registered Role:</strong> <span class="badge badge-${user.role}">${user.role}</span></p>
+                        <p><strong>Selected Subject:</strong> ${user.subject}</p>
                     </div>
+
                     <div class="dashboard-card">
-                        <h3>Your Performance Analytics</h3>
-                        <p>Total Tutoring Hours Completed: <strong>12.5 Hours</strong></p>
-                        <p>Feedback Rating: <strong>4.9 / 5.0 Stars</strong></p>
+                        <h3>Upcoming Tutoring Sessions</h3>
+                        <p style="color: #666; font-size: 14px;">No upcoming sessions scheduled yet for ${user.subject}.</p>
                     </div>
                 </div>
+
                 <div>
                     <div class="dashboard-card">
                         <h3>Platform Announcements</h3>
                         <p style="font-size: 14px; line-height: 1.5;">
-                            <strong>Next Club Meeting:</strong> Tuesday after school in Room 312. Attendance is mandatory for all active tutors.
+                            <strong>Next Club Meeting:</strong> Tuesday after school in Room 312.
                         </p>
-                        <p style="font-size: 14px; line-height: 1.5;">
-                            <strong>Tutee Registration:</strong> New sign-ups are open for the semester. Share the onboarding link with peers who need math help.
-                        </p>
-                    </div>
-                    <div class="dashboard-card">
-                        <h3>Helpful Resources</h3>
-                        <p style="font-size: 14px;"><a href="#" style="color: #007BFF; text-decoration: none;">Mu Alpha Theta Tutor Handbook</a></p>
-                        <p style="font-size: 14px;"><a href="#" style="color: #007BFF; text-decoration: none;">JCHS Math Department Syllabus Archive</a></p>
                     </div>
                 </div>
             </div>
