@@ -23,7 +23,8 @@ app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'onboarding.html'));
 });
 
-// Route: Submit Onboarding & Save to Supabase
+// Route: Submit Onboarding & Save or Fetch Existing User
+// Route: Submit Onboarding & Save or Fetch Existing User
 app.post('/submit-onboarding', async (req, res) => {
     const { username, role, subject } = req.body;
 
@@ -31,22 +32,36 @@ app.post('/submit-onboarding', async (req, res) => {
         return res.status(400).send('Missing required onboarding fields.');
     }
 
-    // Insert user into Supabase "users" table
-    const { data, error } = await supabase
+    // 1. Try inserting the new user directly
+    const { data: newUser, error: insertError } = await supabase
         .from('users')
         .insert([{ username, role, subject }])
         .select()
         .single();
 
-    if (error) {
-        console.error('Supabase Insert Error:', error.message);
-        return res.status(500).send('Failed to save profile. Please try again.');
+    // 2. If there's no error, redirect the newly created user!
+    if (!insertError && newUser) {
+        return res.redirect(`/dashboard?id=${newUser.id}`);
     }
 
-    // Redirect to dashboard using the newly generated Supabase UUID
-    res.redirect(`/dashboard?id=${data.id}`);
-});
+    // 3. If insertion failed because the username ALREADY exists (Error code 23505)
+    if (insertError && insertError.code === '23505') {
+        // Fetch the existing user's ID
+        const { data: existingUser } = await supabase
+            .from('users')
+            .select('id')
+            .eq('username', username)
+            .single();
 
+        if (existingUser) {
+            return res.redirect(`/dashboard?id=${existingUser.id}`);
+        }
+    }
+
+    // 4. Handle any other genuine database errors
+    console.error('Supabase Error:', insertError?.message);
+    return res.status(500).send('Failed to save profile. Please try again.');
+});
 // Route: User Dashboard (Retrieves user from Supabase)
 app.get('/dashboard', async (req, res) => {
     const userId = req.query.id;
@@ -146,7 +161,7 @@ app.get('/dashboard', async (req, res) => {
             <div class="container">
                 <div>
                     <div class="dashboard-card">
-                        <h3>Welcome, ${user.username}!</h3>
+                        <h3>Welcome back, ${user.username}!</h3>
                         <p><strong>Registered Role:</strong> <span class="badge badge-${user.role}">${user.role}</span></p>
                         <p><strong>Selected Subject:</strong> ${user.subject}</p>
                     </div>
