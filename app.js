@@ -4,7 +4,9 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 app.use(express.urlencoded({ extended: true }));
-app.use(express.static('public'));
+
+// FIX 1: Use path.join so Vercel serverless functions can resolve static assets correctly
+app.use(express.static(path.join(__dirname, 'public')));
 
 let users = [];
 
@@ -16,7 +18,8 @@ app.post('/submit-onboarding', (req, res) => {
     const newUser = {
         id: Date.now().toString(),
         username: req.body.username,
-        role: req.body.role
+        role: req.body.role,
+        subject: req.body.subject
     };
     
     users.push(newUser);
