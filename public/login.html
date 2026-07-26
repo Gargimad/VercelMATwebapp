@@ -6,13 +6,46 @@
   <title>Login - JCHS Mu Alpha Theta</title>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
-    body { font-family: sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; background: #f4f7f6; margin: 0; }
-    .card { background: white; padding: 30px; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); width: 320px; text-align: center; }
-    input, button { width: 100%; padding: 10px; margin: 8px 0; border-radius: 4px; border: 1px solid #ccc; box-sizing: border-box; }
-    button { background: #007BFF; color: white; border: none; cursor: pointer; font-weight: bold; }
-    .oauth-btn { background: #4285F4; margin-top: 5px; }
-    .ms-btn { background: #2f2f2f; }
-    .toggle-link { font-size: 12px; color: #007BFF; cursor: pointer; text-decoration: underline; }
+    body { 
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+      display: flex; 
+      justify-content: center; 
+      align-items: center; 
+      height: 100vh; 
+      background-color: #f4f7f6; 
+      margin: 0; 
+    }
+    .card { 
+      background: white; 
+      padding: 30px; 
+      border-radius: 8px; 
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1); 
+      width: 320px; 
+      text-align: center; 
+    }
+    h2 { margin-top: 0; color: #007BFF; }
+    input, button { 
+      width: 100%; 
+      padding: 10px; 
+      margin: 8px 0; 
+      border-radius: 4px; 
+      border: 1px solid #ccc; 
+      box-sizing: border-box; 
+    }
+    button { 
+      background-color: #007BFF; 
+      color: white; 
+      border: none; 
+      cursor: pointer; 
+      font-weight: bold; 
+    }
+    button:hover { background-color: #0056b3; }
+    .oauth-btn { background-color: #4285F4; margin-top: 8px; }
+    .oauth-btn:hover { background-color: #357ae8; }
+    .ms-btn { background-color: #2f2f2f; }
+    .ms-btn:hover { background-color: #111; }
+    hr { margin: 20px 0; border: none; border-top: 1px solid #eee; }
+    .toggle-link { font-size: 13px; color: #007BFF; cursor: pointer; text-decoration: underline; }
   </style>
 </head>
 <body>
@@ -37,11 +70,23 @@
 </div>
 
 <script>
-  // Initialize Supabase Client directly in browser
-  // Replace these strings with your real public credentials
-  const SUPABASE_URL = "YOUR_SUPABASE_URL"; 
-  const SUPABASE_ANON_KEY = "YOUR_SUPABASE_ANON_KEY"; 
-  const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  let supabase;
+
+  // Dynamically load keys from backend .env via /api/config
+  async function initSupabase() {
+    try {
+      const response = await fetch('/api/config');
+      const config = await response.json();
+      
+      // Initialize Supabase Client dynamically
+      supabase = window.supabase.createClient(config.supabaseUrl, config.supabaseAnonKey);
+    } catch (err) {
+      console.error("Failed to load environment credentials:", err);
+    }
+  }
+
+  // Run initialization when page loads
+  initSupabase();
 
   let isSignUp = false;
 
@@ -55,6 +100,8 @@
   // Handle Form Submission
   document.getElementById('auth-form').addEventListener('submit', async (e) => {
     e.preventDefault();
+    if (!supabase) return alert("System initializing, please wait a moment...");
+
     const email = document.getElementById('email').value;
     const password = document.getElementById('password').value;
 
@@ -63,8 +110,11 @@
       const { data, error } = await supabase.auth.signUp({ email, password });
       if (error) return alert(error.message);
       
-      // Send token to backend to determine if onboarding is needed
-      handleAuthSuccess(data.session.access_token);
+      if (data.session) {
+        handleAuthSuccess(data.session.access_token);
+      } else {
+        alert("Check your email for the confirmation link!");
+      }
     } else {
       // 2. Log In User
       const { data, error } = await supabase.auth.signInWithPassword({ email, password });
@@ -76,15 +126,17 @@
 
   // OAuth Handler (Google / Microsoft)
   async function loginWithOAuth(provider) {
+    if (!supabase) return alert("System initializing, please wait a moment...");
+
     const { error } = await supabase.auth.signInWithOAuth({
-      provider: provider, // 'google' or 'azure' (Microsoft)
-      options: { redirectTo: window.location.origin + '/auth/callback' }
+      provider: provider,
+      options: { redirectTo: window.location.origin + '/auth/verify' }
     });
     if (error) alert(error.message);
   }
 
   // Send Token to Server to handle redirection
-  async function handleAuthSuccess(accessToken) {
+  function handleAuthSuccess(accessToken) {
     window.location.href = `/auth/verify?token=${accessToken}`;
   }
 </script>
