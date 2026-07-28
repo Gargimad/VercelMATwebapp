@@ -40,6 +40,7 @@
       font-weight: bold; 
     }
     button:hover { background-color: #0056b3; }
+    button:disabled { background-color: #a0c4ff; cursor: not-allowed; }
     .oauth-btn { background-color: #4285F4; margin-top: 8px; }
     .oauth-btn:hover { background-color: #357ae8; }
     .ms-btn { background-color: #2f2f2f; }
@@ -56,7 +57,7 @@
   <form id="auth-form">
     <input type="email" id="email" placeholder="Email" required />
     <input type="password" id="password" placeholder="Password" required />
-    <button type="submit" id="submit-btn">Log In</button>
+    <button type="submit" id="submit-btn" disabled>Log In</button>
   </form>
 
   <hr />
@@ -72,29 +73,21 @@
 <script>
   let supabase;
 
-  // Dynamically load keys from backend .env via /api/config
-  async function initSupabase() {
+  // Initialize Supabase as soon as the DOM is loaded
+  document.addEventListener('DOMContentLoaded', async () => {
     try {
       const response = await fetch('/api/config');
       const config = await response.json();
       
       // Initialize Supabase Client dynamically
       supabase = window.supabase.createClient(config.supabaseUrl, config.supabasePublishableKey);
+
+      // Enable submit button after successful initialization
+      document.getElementById("submit-btn").disabled = false;
     } catch (err) {
       console.error("Failed to load environment credentials:", err);
     }
-  }
-
-  async function initSupabase() {
-  const response = await fetch('/api/config');
-  const config = await response.json();
-  supabase = window.supabase.createClient(config.supabaseUrl, config.supabasePublishableKey);
-
-  // Enable UI only after initialization
-  document.getElementById("submit-btn").disabled = false;
-}
-
-
+  });
 
   let isSignUp = false;
 
@@ -143,7 +136,7 @@
     if (error) alert(error.message);
   }
 
-  // Send Token to Server to handle redirection
+  // Redirect to server verification endpoint with access token
   function handleAuthSuccess(accessToken) {
     window.location.href = `/auth/verify?token=${accessToken}`;
   }

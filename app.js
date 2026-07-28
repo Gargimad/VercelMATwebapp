@@ -19,7 +19,7 @@ app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
 // -------------------------------------------------------------
-// NEW: Config API endpoint to share public keys with frontend
+// Config API endpoint to share public keys with frontend
 // -------------------------------------------------------------
 app.get('/api/config', (req, res) => {
     res.json({
@@ -43,9 +43,12 @@ app.get('/auth/verify', async (req, res) => {
     const token = req.query.token;
     if (!token) return res.redirect('/');
 
-    // Get user identity from token
+    // Get user identity from token using Supabase client
     const { data: { user }, error } = await supabase.auth.getUser(token);
-    if (error || !user) return res.redirect('/');
+    if (error || !user) {
+        console.error("Auth verification error:", error ? error.message : "No user found");
+        return res.redirect('/');
+    }
 
     // Check if user already exists in custom "users" table
     const { data: profile } = await supabase
