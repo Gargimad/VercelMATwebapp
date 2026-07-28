@@ -1,4 +1,4 @@
-// Load environment variables from .env file
+// Load environment variables from .env file (for local development)
 require('dotenv').config();
 
 const express = require('express');
@@ -8,10 +8,21 @@ const { createClient } = require('@supabase/supabase-js');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Initialize Supabase client for backend use
+// -------------------------------------------------------------
+// Initialize Supabase Client with Environment Safeguards
+// -------------------------------------------------------------
 const supabaseUrl = process.env.SUPABASE_URL;
 const supabaseKey = process.env.SUPABASE_PUBLISHABLE_KEY;
-const supabase = createClient(supabaseUrl, supabaseKey);
+
+if (!supabaseUrl || !supabaseKey) {
+  console.error("CRITICAL ERROR: Missing SUPABASE_URL or SUPABASE_PUBLISHABLE_KEY in environment variables.");
+}
+
+// Fallback values prevent process crashes during startup if env vars are missing
+const supabase = createClient(
+  supabaseUrl || 'https://placeholder.supabase.co', 
+  supabaseKey || 'placeholder-key'
+);
 
 // Middleware
 app.use(express.urlencoded({ extended: true }));
