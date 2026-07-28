@@ -62,8 +62,8 @@
 
   <hr />
 
-  <button class="oauth-btn" onclick="loginWithOAuth('google')">Sign in with Google</button>
-  <button class="oauth-btn ms-btn" onclick="loginWithOAuth('azure')">Sign in with Microsoft</button>
+  <button class="oauth-btn" type="button" onclick="loginWithOAuth('google')">Sign in with Google</button>
+  <button class="oauth-btn ms-btn" type="button" onclick="loginWithOAuth('azure')">Sign in with Microsoft</button>
 
   <p style="margin-top: 15px;">
     <span class="toggle-link" id="toggle-auth" onclick="toggleAuthMode()">Need an account? Sign Up</span>
@@ -71,9 +71,9 @@
 </div>
 
 <script>
-  // Declare variables once at the top
-  let supabase;
-  let isSignUp = false;
+  // Global declarations with var to avoid redeclaration errors
+  var supabase = supabase || null;
+  var isSignUp = false;
 
   // Initialize Supabase as soon as the DOM loads
   document.addEventListener('DOMContentLoaded', async () => {
@@ -84,8 +84,9 @@
       // Initialize Supabase Client
       supabase = window.supabase.createClient(config.supabaseUrl, config.supabasePublishableKey);
 
-      // Enable submit button after successful initialization
-      document.getElementById("submit-btn").disabled = false;
+      // Enable submit button after initialization
+      const submitBtn = document.getElementById("submit-btn");
+      if (submitBtn) submitBtn.disabled = false;
     } catch (err) {
       console.error("Failed to load environment credentials:", err);
     }
