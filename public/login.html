@@ -79,14 +79,22 @@
       const config = await response.json();
       
       // Initialize Supabase Client dynamically
-      supabase = window.supabase.createClient(config.supabaseUrl, config.supabaseAnonKey);
+      supabase = window.supabase.createClient(config.supabaseUrl, config.supabasePublishableKey);
     } catch (err) {
       console.error("Failed to load environment credentials:", err);
     }
   }
 
-  // Run initialization when page loads
-  initSupabase();
+  async function initSupabase() {
+  const response = await fetch('/api/config');
+  const config = await response.json();
+  supabase = window.supabase.createClient(config.supabaseUrl, config.supabasePublishableKey);
+
+  // Enable UI only after initialization
+  document.getElementById("submit-btn").disabled = false;
+}
+
+
 
   let isSignUp = false;
 

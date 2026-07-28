@@ -10,7 +10,7 @@ const PORT = process.env.PORT || 3000;
 
 // Initialize Supabase client for backend use
 const supabaseUrl = process.env.SUPABASE_URL;
-const supabaseKey = process.env.SUPABASE_ANON_KEY;
+const supabaseKey = process.env.SUPABASE_PUBLISHABLE_KEY;
 const supabase = createClient(supabaseUrl, supabaseKey);
 
 // Middleware
@@ -24,7 +24,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.get('/api/config', (req, res) => {
     res.json({
         supabaseUrl: process.env.SUPABASE_URL,
-        supabaseAnonKey: process.env.SUPABASE_ANON_KEY
+        supabasePublishableKey: process.env.SUPABASE_PUBLISHABLE_KEY
     });
 });
 
