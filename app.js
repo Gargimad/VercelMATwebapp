@@ -70,7 +70,7 @@ app.get('/auth/verify', async (req, res) => {
 app.post('/submit-onboarding', async (req, res) => {
     const { userId, username, role, subject } = req.body;
 
-    if (!userId || !username || !role || !subject) {
+    if (!username || !role || !subject) {
         return res.status(400).send('Missing required onboarding fields.');
     }
 
