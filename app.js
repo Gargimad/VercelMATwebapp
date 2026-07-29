@@ -67,16 +67,19 @@ app.get('/auth/verify', async (req, res) => {
     }
 });
 
+// Onboarding Submission Route
 app.post('/submit-onboarding', async (req, res) => {
     const { userId, username, role, subject } = req.body;
 
-    if (!username || !role || !subject) {
+    if (!userId || !username || !role || !subject) {
+        console.error("Missing onboarding values:", { userId, username, role, subject });
         return res.status(400).send('Missing required onboarding fields.');
     }
 
+    // Insert user record with explicit 'id' matching Supabase Auth ID
     const { error } = await supabase
         .from('users')
-        .insert([{username, role, subject }]);
+        .insert([{ id: userId, username, role, subject }]);
 
     if (error) {
         console.error('Supabase Insert Error:', error.message);
@@ -86,9 +89,7 @@ app.post('/submit-onboarding', async (req, res) => {
     res.redirect(`/dashboard?id=${userId}`);
 });
 
-// -------------------------------------------------------------
-// UPDATED DASHBOARD ROUTE (Renders dashboard.ejs)
-// -------------------------------------------------------------
+// Dashboard Route
 app.get('/dashboard', async (req, res) => {
     const userId = req.query.id;
 
@@ -96,7 +97,7 @@ app.get('/dashboard', async (req, res) => {
         return res.redirect('/');
     }
 
-    // 1. Fetch User Profile
+    // Fetch User Profile
     const { data: user, error: userError } = await supabase
         .from('users')
         .select('*')
@@ -108,7 +109,7 @@ app.get('/dashboard', async (req, res) => {
         return res.redirect('/');
     }
 
-    // 2. Fetch User Sessions (or default to empty array if table doesn't exist yet)
+    // Fetch User Sessions
     let sessions = [];
     const { data: sessionData, error: sessionError } = await supabase
         .from('sessions')
@@ -119,15 +120,14 @@ app.get('/dashboard', async (req, res) => {
         sessions = sessionData;
     }
 
-    // 3. Render dashboard.ejs and pass user & sessions variables to template
     res.render('dashboard', { user, sessions });
 });
 
-// Endpoint to handle new session creation from modal
+// Create new session endpoint
 app.post('/api/sessions', async (req, res) => {
     const { title, peer_name, datetime, location, userId } = req.body;
 
-    const { data, error } = await supabase
+    const { error } = await supabase
         .from('sessions')
         .insert([{ title, peer_name, datetime, location, user_id: userId }]);
 
