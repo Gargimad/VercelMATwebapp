@@ -1,71 +1,94 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>JCHS Mu Alpha Theta Onboarding</title>
-    <link rel="stylesheet" href="/style.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Onboarding - JCHS Mu Alpha Theta</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      background-color: #f4f7f6;
+      margin: 0;
+    }
+    .card {
+      background: white;
+      padding: 30px;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      width: 340px;
+    }
+    h2 { margin-top: 0; color: #007BFF; text-align: center; }
+    label { display: block; margin-top: 10px; font-weight: bold; font-size: 14px; }
+    input, select, button {
+      width: 100%;
+      padding: 10px;
+      margin-top: 5px;
+      border-radius: 4px;
+      border: 1px solid #ccc;
+      box-sizing: border-box;
+    }
+    button {
+      background-color: #007BFF;
+      color: white;
+      border: none;
+      cursor: pointer;
+      font-weight: bold;
+      margin-top: 20px;
+    }
+    button:hover { background-color: #0056b3; }
+  </style>
 </head>
 <body>
 
-    <form id="onboardingForm" action="/submit-onboarding" method="POST">
-        
-        <div class="card active" id="step1">
-            <h2>Welcome to JCHS Mu Alpha Theta</h2>
-            <h4>Johns Creek High School's Math Tutoring Platform</h4>
-            <p>What is your name?</p>
-            <input type="text" id="username" name="username" placeholder="Enter your full name" required>
-            <button type="button" onclick="nextStep(1, 2)">Next Step</button>
-        </div>
+<div class="card">
+  <h2>Complete Profile</h2>
+  
+  <form action="/submit-onboarding" method="POST">
+    <input type="hidden" id="userId" name="userId" />
 
-        <div class="card" id="step2">
-            <h2>What's your role?</h2>
-            <select name="role" style="width: 100%; padding: 12px; margin-bottom: 20px; border-radius: 6px; border: 1px solid #ccc;">
-                <option value="tutor">Tutor</option>
-                <option value="tutee">Tutee</option>
-                <option value="both">Both (Tutee & Tutor)</option>
-                <option value="admin">School Admin</option>
-            </select>
-            <button type="button" onclick="nextStep(2, 3)">Next Step</button>
-        </div>
+    <label for="username">Username / Full Name</label>
+    <input type="text" id="username" name="username" placeholder="e.g. Alex Smith" required />
 
-        <div class="card" id="step3">
-            <h2>What class would you like to get tutored in / tutor?</h2>
-            <select name="subject" style="width: 100%; padding: 12px; margin-bottom: 20px; border-radius: 6px; border: 1px solid #ccc;">
-                <option value="Algebra">Algebra</option>
-                <option value="Algebra H">Algebra H</option>
-                <option value="Advanced Algebra">Advanced Algebra</option>
-                <option value="Precalculus">Precalculus</option>
-                <option value="AP Precalculus">AP Precalculus</option>
-                <option value="AP Calculus AB">AP Calculus AB</option>
-                <option value="AP Calculus BC">AP Calculus BC</option>
-                <option value="AP Statistics">AP Statistics</option>
-                <option value="AMDM">AMDM</option>
-            </select>
-            <button type="button" onclick="nextStep(3, 4)">Next Step</button>
-        </div>
+    <label for="role">Role</label>
+    <select id="role" name="role" required>
+      <option value="" disabled selected>Select your role</option>
+      <option value="Tutee">Student</option>
+      <option value="Tutor">Tutor</option>
+      <option value="Both">Both (Tutee and Tutor)</option>
+    </select>
 
-        <div class="card" id="step4">
-            <h2>Perfect!</h2>
-            <p>Click below to complete onboarding and enter your dashboard.</p>
-            <button type="submit">Complete Onboarding</button>
-        </div>
+    <label for="subject">Subject</label>
+    <select id="subject" name="subject" required>
+      <option value="" disabled selected>Select a subject</option>
+      <option value="Algebra">Algebra</option>
+      <option value="Geometry">Geometry</option>
+      <option value="Pre-Calculus">Pre-Calculus</option>
+      <option value="Calculus">Calculus</option>
+      <option value="Statistics">Statistics</option>
+    </select>
 
-    </form>
+    <button type="submit">Complete Setup</button>
+  </form>
+</div>
 
-    <script>
-        function nextStep(currentId, nextId) {
-            if (currentId === 1) {
-                const nameInput = document.getElementById('username').value.trim();
-                if (!nameInput) {
-                    alert("Please enter your name to proceed!");
-                    return;
-                }
-            }
+<script>
+  // Extract 'userId' from the URL query string (?userId=123) and put it into the hidden input
+  document.addEventListener('DOMContentLoaded', () => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const userId = urlParams.get('userId');
+    
+    if (userId) {
+      document.getElementById('userId').value = userId;
+    } else {
+      alert("Missing User ID. Redirecting to login...");
+      window.location.href = '/';
+    }
+  });
+</script>
 
-            document.getElementById('step' + currentId).classList.remove('active');
-            document.getElementById('step' + nextId).classList.add('active');
-        }
-    </script>
 </body>
 </html>
