@@ -76,7 +76,7 @@ app.post('/submit-onboarding', async (req, res) => {
 
     const { error } = await supabase
         .from('users')
-        .insert([{ id: userId, username, role, subject }]);
+        .insert([{username, role, subject }]);
 
     if (error) {
         console.error('Supabase Insert Error:', error.message);
