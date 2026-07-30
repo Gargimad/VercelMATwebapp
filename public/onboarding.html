@@ -17,41 +17,53 @@
             <h4>Johns Creek High School's Math Tutoring Platform</h4>
             <p>What is your name?</p>
             <input type="text" id="username" name="username" placeholder="Enter your full name" required>
-            <button type="button" onclick="nextStep(1, 2)">Next Step</button>
+            <button type="button" onclick="nextStep(1, 2)">Next Step &rarr;</button>
         </div>
 
         <div class="card" id="step2">
             <h2>What's your role?</h2>
-            <select name="role" class="form-select">
+            <select name="role" id="roleSelect" class="form-select" onchange="updateRoleText()">
                 <option value="tutor">Tutor</option>
                 <option value="tutee">Tutee</option>
                 <option value="admin">School Admin</option>
             </select>
             <div class="button-group">
-                <button type="button" onclick="prevStep(2, 1)">Back</button>
-                <button type="button" onclick="nextStep(2, 3)">Next Step</button>
+                <button type="button" onclick="prevStep(2, 1)">&larr; Back</button>
+                <button type="button" onclick="handleRoleNext()">Next Step &rarr;</button>
+            </div>
+        </div>
+
+        <div class="card" id="stepAdmin">
+            <h2>Admin Verification</h2>
+            <p>Please enter the secret admin access passcode:</p>
+            <input type="password" id="adminPassword" placeholder="Enter admin password">
+            <p id="adminError" style="color: #e53e3e; display: none; font-size: 14px; margin-top: 8px; font-weight: bold;">
+                Incorrect password! Please try again.
+            </p>
+            <div class="button-group">
+                <button type="button" onclick="prevStep('Admin', 2)">&larr; Back</button>
+                <button type="button" onclick="verifyAndSubmitAdmin()">Complete Onboarding &rarr;</button>
             </div>
         </div>
 
         <div class="card" id="step3">
             <h2>What grade are you in currently?</h2>
-            <select name="grade" class="form-select">
-                <option value="9">9th</option>
-                <option value="10">10th</option>
-                <option value="11">11th</option>
-                <option value="12">12th</option>
-                <option value="Admin">Admin</option>
+            <select name="grade" id="gradeSelect" class="form-select">
+                <option value="9">9th Grade</option>
+                <option value="10">10th Grade</option>
+                <option value="11">11th Grade</option>
+                <option value="12">12th Grade</option>
             </select>
             <div class="button-group">
-                <button type="button" onclick="prevStep(3, 2)">Back</button>
-                <button type="button" onclick="nextStep(3, 4)">Next Step</button>
+                <button type="button" onclick="prevStep(3, 2)">&larr; Back</button>
+                <button type="button" onclick="nextStep(3, 4)">Next Step &rarr;</button>
             </div>
         </div>
 
         <div class="card" id="step4">
-            <h2>What class would you like to get tutored in / tutor?</h2>
-            <p>Choose one for now and you can add more interest areas in Profile Settings once you're in!</p>
-            <select name="subject" class="form-select">
+            <h2 id="subjectHeading">What class would you like to tutor in?</h2>
+            <p>Choose your primary subject now. You can add more areas of interest in your profile settings later!</p>
+            <select name="subject" id="subjectSelect" class="form-select">
                 <option value="Algebra">Algebra</option>
                 <option value="Algebra H">Algebra H</option>
                 <option value="Advanced Algebra">Advanced Algebra</option>
@@ -63,24 +75,24 @@
                 <option value="AMDM">AMDM</option>
             </select>
             <div class="button-group">
-                <button type="button" onclick="prevStep(4, 3)">Back</button>
-                <button type="button" onclick="nextStep(4, 5)">Next Step</button>
+                <button type="button" onclick="prevStep(4, 3)">&larr; Back</button>
+                <button type="button" onclick="nextStep(4, 5)">Next Step &rarr;</button>
             </div>
         </div>
 
         <div class="card" id="step5">
             <h2>Perfect!</h2>
-            <p>Click below to complete onboarding and enter your dashboard.</p>
+            <p>Click below to complete onboarding and submit your registration for approval.</p>
             <div class="button-group">
-                <button type="button" onclick="prevStep(5, 4)">Back</button>
-                <button type="submit">Complete Onboarding</button>
+                <button type="button" onclick="prevStep(5, 4)">&larr; Back</button>
+                <button type="submit">Complete Onboarding &rarr;</button>
             </div>
         </div>
 
     </form>
 
     <script>
-        // Extract userId from URL query parameter (?userId=xyz) on load
+        // Extract userId from URL query parameter (?userId=xyz) on page load
         document.addEventListener('DOMContentLoaded', () => {
             const urlParams = new URLSearchParams(window.location.search);
             const userId = urlParams.get('userId');
@@ -91,8 +103,21 @@
                 alert("Missing User ID parameter. Redirecting to login...");
                 window.location.href = '/';
             }
+            updateRoleText();
         });
 
+        // Dynamic text customization depending on role
+        function updateRoleText() {
+            const role = document.getElementById('roleSelect').value;
+            const heading = document.getElementById('subjectHeading');
+            if (role === 'tutor') {
+                heading.innerText = "What class would you like to tutor in?";
+            } else if (role === 'tutee') {
+                heading.innerText = "What class do you need tutoring help in?";
+            }
+        }
+
+        // Standard navigation forward
         function nextStep(currentId, nextId) {
             if (currentId === 1) {
                 const nameInput = document.getElementById('username').value.trim();
@@ -106,9 +131,43 @@
             document.getElementById('step' + nextId).classList.add('active');
         }
 
+        // Standard navigation backward
         function prevStep(currentId, prevId) {
             document.getElementById('step' + currentId).classList.remove('active');
             document.getElementById('step' + prevId).classList.add('active');
+        }
+
+        // Branching logic for step 2 (Splits Admin vs Student routes)
+        function handleRoleNext() {
+            const role = document.getElementById('roleSelect').value;
+            document.getElementById('step2').classList.remove('active');
+
+            if (role === 'admin') {
+                document.getElementById('stepAdmin').classList.add('active');
+            } else {
+                document.getElementById('step3').classList.add('active');
+            }
+        }
+
+        // Verifies secret admin password (iLoveMath) and submits form
+        function verifyAndSubmitAdmin() {
+            const pass = document.getElementById('adminPassword').value;
+            const errorMsg = document.getElementById('adminError');
+
+            if (pass === 'iLoveMath') {
+                errorMsg.style.display = 'none';
+
+                const gradeSelect = document.getElementById('gradeSelect');
+                const subjectSelect = document.getElementById('subjectSelect');
+
+                // Inject default admin values so backend receive valid strings
+                gradeSelect.innerHTML += '<option value="Admin" selected>Admin</option>';
+                subjectSelect.innerHTML += '<option value="Admin" selected>Admin</option>';
+
+                document.getElementById('onboardingForm').submit();
+            } else {
+                errorMsg.style.display = 'block';
+            }
         }
     </script>
 </body>

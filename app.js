@@ -12,7 +12,7 @@ const PORT = process.env.PORT || 3000;
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
 
-// Initialize Standard Supabase Client (For general DB queries)
+// Initialize Standard & Admin Supabase Clients
 const supabaseUrl = process.env.SUPABASE_URL;
 const supabaseKey = process.env.SUPABASE_PUBLISHABLE_KEY;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -21,15 +21,16 @@ if (!supabaseUrl || !supabaseKey) {
     console.error("CRITICAL ERROR: Missing SUPABASE_URL or SUPABASE_PUBLISHABLE_KEY.");
 }
 
+// Standard client for public operations
 const supabase = createClient(
     supabaseUrl || 'https://placeholder.supabase.co', 
     supabaseKey || 'placeholder-key'
 );
 
-// Initialize Supabase Admin Client (For administrative tasks like wiping Auth users)
+// Admin client using Service Role Key to bypass RLS policies
 const supabaseAdmin = createClient(
     supabaseUrl || 'https://placeholder.supabase.co',
-    supabaseServiceKey || 'placeholder-key'
+    supabaseServiceKey || supabaseKey || 'placeholder-key'
 );
 
 // Middleware
@@ -128,7 +129,8 @@ app.post('/submit-onboarding', async (req, res) => {
     // Admins are auto-approved; tutors and tutees start as 'pending'
     const accountStatus = (role === 'admin') ? 'active' : 'pending';
 
-    const { error } = await supabase
+    // Insert user record using supabaseAdmin to bypass RLS restrictions
+    const { error } = await supabaseAdmin
         .from('users')
         .insert([{ 
             id: userId, 
@@ -211,13 +213,13 @@ app.post('/api/sessions', async (req, res) => {
 });
 
 // =========================================================================
-// REAL PROTECTED ADMIN ROUTES
+// PROTECTED ADMIN ROUTES
 // =========================================================================
 
 // Helper function to check if a user is an active admin
 async function verifyIsActiveAdmin(adminId) {
     if (!adminId) return false;
-    const { data: adminUser, error } = await supabase
+    const { data: adminUser, error } = await supabaseAdmin
         .from('users')
         .select('role, status')
         .eq('id', adminId)
@@ -236,8 +238,8 @@ app.get('/admin', async (req, res) => {
         return res.status(403).send('Access Denied: You do not have permission to view the Admin Portal.');
     }
 
-    // Fetch all registered users
-    const { data: users, error: usersError } = await supabase
+    // Fetch all registered users via supabaseAdmin
+    const { data: users, error: usersError } = await supabaseAdmin
         .from('users')
         .select('*')
         .order('created_at', { ascending: false });
@@ -263,7 +265,8 @@ app.post('/api/users/update-status', async (req, res) => {
         return res.status(400).json({ error: 'Invalid user or status value.' });
     }
 
-    const { error } = await supabase
+    // Uses supabaseAdmin to bypass RLS policies during update
+    const { error } = await supabaseAdmin
         .from('users')
         .update({ status })
         .eq('id', userId);
@@ -290,12 +293,12 @@ app.post('/api/users/delete', async (req, res) => {
     }
 
     try {
-        // 1. Delete from Supabase Auth
+        // 1. Delete user from Supabase Auth
         const { error: authError } = await supabaseAdmin.auth.admin.deleteUser(userId);
         if (authError) console.warn('Auth deletion note:', authError.message);
 
-        // 2. Delete from public.users table
-        const { error: dbError } = await supabase
+        // 2. Delete user from public.users table
+        const { error: dbError } = await supabaseAdmin
             .from('users')
             .delete()
             .eq('id', userId);
