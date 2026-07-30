@@ -217,65 +217,83 @@ app.post('/api/sessions', async (req, res) => {
 // =========================================================================
 
 // Helper function to check if a user is an active admin
+// DEBUG HELPER: Checks admin status with detailed terminal logs
 async function verifyIsActiveAdmin(adminId) {
-    if (!adminId) return false;
+    console.log('\n--- DEBUG: VERIFY ADMIN ---');
+    console.log('Received adminId from request:', adminId);
+
+    if (!adminId) {
+        console.error('❌ FAIL: adminId is null or undefined!');
+        return false;
+    }
+
     const { data: adminUser, error } = await supabaseAdmin
         .from('users')
-        .select('role, status')
+        .select('id, role, status')
         .eq('id', adminId)
-        .single();
+        .maybeSingle();
 
-    if (error || !adminUser) return false;
-    return adminUser.role === 'admin' && adminUser.status === 'active';
+    if (error) {
+        console.error('❌ FAIL: Supabase query error while verifying admin:', error.message);
+        return false;
+    }
+
+    if (!adminUser) {
+        console.error(`❌ FAIL: No user row found in Supabase matching id: "${adminId}"`);
+        return false;
+    }
+
+    console.log('Found user record in database:', adminUser);
+
+    if (adminUser.role !== 'admin') {
+        console.error(`❌ FAIL: User role is "${adminUser.role}", expected "admin"`);
+        return false;
+    }
+
+    if (adminUser.status !== 'active') {
+        console.error(`❌ FAIL: User status is "${adminUser.status}", expected "active"`);
+        return false;
+    }
+
+    console.log('✅ SUCCESS: Admin identity verified!');
+    return true;
 }
 
-// Protected Admin Dashboard Route
-app.get('/admin', async (req, res) => {
-    const adminId = req.query.id;
-
-    const isAdmin = await verifyIsActiveAdmin(adminId);
-    if (!isAdmin) {
-        return res.status(403).send('Access Denied: You do not have permission to view the Admin Portal.');
-    }
-
-    // Fetch all registered users via supabaseAdmin
-    const { data: users, error: usersError } = await supabaseAdmin
-        .from('users')
-        .select('*')
-        .order('created_at', { ascending: false });
-
-    if (usersError) {
-        console.error('Error fetching users for admin:', usersError.message);
-        return res.status(500).send('Error loading admin portal data.');
-    }
-
-    res.render('admin', { users });
-});
-
-// Protected API Endpoint to Update User Status (Approve / Reject)
+// DEBUG ENDPOINT: Update User Status
 app.post('/api/users/update-status', async (req, res) => {
+    console.log('\n======================================');
+    console.log('RECEIVED STATUS UPDATE REQUEST');
+    console.log('Payload:', req.body);
+
     const { userId, status, adminId } = req.body;
 
+    // 1. Verify Admin Permissions
     const isAdmin = await verifyIsActiveAdmin(adminId);
     if (!isAdmin) {
+        console.error('❌ Request rejected: verifyIsActiveAdmin returned false');
         return res.status(403).json({ error: 'Permission denied. Active admin rights required.' });
     }
 
+    // 2. Validate Input Parameters
     if (!userId || !['active', 'rejected', 'pending'].includes(status)) {
+        console.error('❌ Request rejected: Invalid userId or status value');
         return res.status(400).json({ error: 'Invalid user or status value.' });
     }
 
-    // Uses supabaseAdmin to bypass RLS policies during update
-    const { error } = await supabaseAdmin
+    // 3. Update Status in Supabase
+    console.log(`Attempting database update: Setting user "${userId}" status to "${status}"...`);
+    const { data, error } = await supabaseAdmin
         .from('users')
         .update({ status })
-        .eq('id', userId);
+        .eq('id', userId)
+        .select();
 
     if (error) {
-        console.error('Failed to update user status:', error.message);
-        return res.status(500).json({ error: 'Failed to update user status.' });
+        console.error('❌ FAIL: Supabase update query error:', error.message);
+        return res.status(500).json({ error: 'Failed to update user status in database: ' + error.message });
     }
 
+    console.log('✅ SUCCESS: Database updated successfully!', data);
     res.json({ success: true, message: `User status updated to ${status}` });
 });
 
