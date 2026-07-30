@@ -102,6 +102,7 @@ app.get('/auth/verify', async (req, res) => {
 });
 
 // Submit Onboarding Form Route
+// Submit Onboarding Form Route
 app.post('/submit-onboarding', async (req, res) => {
     const { userId, username, role, grade, subject } = req.body;
 
@@ -110,7 +111,10 @@ app.post('/submit-onboarding', async (req, res) => {
         return res.status(400).send('Missing required onboarding fields.');
     }
 
-    // Insert user profile into Supabase with 'pending' status
+    // Admins are auto-approved; tutors and tutees start as 'pending'
+    const accountStatus = (role === 'admin') ? 'active' : 'pending';
+
+    // Insert user profile into Supabase
     const { error } = await supabase
         .from('users')
         .insert([{ 
@@ -119,7 +123,7 @@ app.post('/submit-onboarding', async (req, res) => {
             role, 
             grade, 
             subject, 
-            status: 'pending' 
+            status: accountStatus 
         }]);
 
     if (error) {
@@ -127,8 +131,12 @@ app.post('/submit-onboarding', async (req, res) => {
         return res.status(500).send('Could not save profile. Please try again.');
     }
 
-    // Send user to pending screen instead of dashboard
-    res.redirect('/pending');
+    // Redirect admins directly to the admin portal, others to pending screen
+    if (role === 'admin') {
+        res.redirect(`/admin?id=${userId}`);
+    } else {
+        res.redirect('/pending');
+    }
 });
 
 // =========================================================================
