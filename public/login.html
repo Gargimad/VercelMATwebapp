@@ -20,7 +20,7 @@
       padding: 30px; 
       border-radius: 8px; 
       box-shadow: 0 4px 12px rgba(0,0,0,0.1); 
-      width: 320px; 
+      width: 340px; 
       text-align: center; 
     }
     h2 { margin-top: 0; color: #007BFF; }
@@ -41,12 +41,15 @@
     }
     button:hover { background-color: #0056b3; }
     button:disabled { background-color: #a0c4ff; cursor: not-allowed; }
+    .secondary-btn { background-color: #6c757d; }
+    .secondary-btn:hover { background-color: #5a6268; }
     .oauth-btn { background-color: #4285F4; margin-top: 8px; }
     .oauth-btn:hover { background-color: #357ae8; }
     .ms-btn { background-color: #2f2f2f; }
     .ms-btn:hover { background-color: #111; }
     hr { margin: 20px 0; border: none; border-top: 1px solid #eee; }
-    .toggle-link { font-size: 13px; color: #007BFF; cursor: pointer; text-decoration: underline; }
+    .toggle-link { font-size: 13px; color: #007BFF; cursor: pointer; text-decoration: underline; display: inline-block; margin: 4px 0; }
+    .hidden { display: none !important; }
   </style>
 </head>
 <body>
@@ -56,35 +59,45 @@
   
   <form id="auth-form">
     <input type="email" id="email" placeholder="Email" required />
-    <input type="password" id="password" placeholder="Password" required />
+    
+    <div id="password-group">
+      <input type="password" id="password" placeholder="Password" />
+      <div style="text-align: right;">
+        <span class="toggle-link" onclick="setMode('reset')">Forgot Password?</span>
+      </div>
+    </div>
+
+    <input type="text" id="otp-token" class="hidden" placeholder="Enter 6-digit OTP Code" />
+
     <button type="submit" id="submit-btn" disabled>Log In</button>
   </form>
 
   <hr />
 
-  <button class="oauth-btn" type="button" onclick="loginWithOAuth('google')">Sign in with Google</button>
-  <button class="oauth-btn ms-btn" type="button" onclick="loginWithOAuth('azure')">Sign in with Microsoft</button>
+  <div id="oauth-group">
+    <button class="oauth-btn" type="button" onclick="loginWithOAuth('google')">Sign in with Google</button>
+    <button class="oauth-btn ms-btn" type="button" onclick="loginWithOAuth('azure')">Sign in with Microsoft</button>
+    <button class="secondary-btn" type="button" onclick="setMode('otp')">Send One-Time Passcode (OTP)</button>
+    <hr />
+  </div>
 
-  <p style="margin-top: 15px;">
+  <p style="margin-top: 10px;">
     <span class="toggle-link" id="toggle-auth" onclick="toggleAuthMode()">Need an account? Sign Up</span>
   </p>
 </div>
 
 <script>
-  // Global declarations with var to avoid redeclaration errors
   var supabase = supabase || null;
-  var isSignUp = false;
+  // Modes: 'signin', 'signup', 'reset', 'otp', 'verify-otp'
+  var currentMode = 'signin';
 
-  // Initialize Supabase as soon as the DOM loads
   document.addEventListener('DOMContentLoaded', async () => {
     try {
       const response = await fetch('/api/config');
       const config = await response.json();
       
-      // Initialize Supabase Client
       supabase = window.supabase.createClient(config.supabaseUrl, config.supabasePublishableKey);
 
-      // Enable submit button after initialization
       const submitBtn = document.getElementById("submit-btn");
       if (submitBtn) submitBtn.disabled = false;
     } catch (err) {
@@ -92,11 +105,62 @@
     }
   });
 
+  // Switch between Form Modes
+  function setMode(mode) {
+    currentMode = mode;
+    const title = document.getElementById('title');
+    const submitBtn = document.getElementById('submit-btn');
+    const passwordGroup = document.getElementById('password-group');
+    const otpInput = document.getElementById('otp-token');
+    const oauthGroup = document.getElementById('oauth-group');
+    const toggleAuth = document.getElementById('toggle-auth');
+    const passwordInput = document.getElementById('password');
+
+    // Reset visibility
+    passwordGroup.classList.remove('hidden');
+    otpInput.classList.add('hidden');
+    oauthGroup.classList.remove('hidden');
+    passwordInput.required = true;
+
+    if (mode === 'signin') {
+      title.innerText = 'Sign In';
+      submitBtn.innerText = 'Log In';
+      toggleAuth.innerText = 'Need an account? Sign Up';
+    } else if (mode === 'signup') {
+      title.innerText = 'Sign Up';
+      submitBtn.innerText = 'Register';
+      toggleAuth.innerText = 'Already have an account? Log In';
+    } else if (mode === 'reset') {
+      title.innerText = 'Reset Password';
+      submitBtn.innerText = 'Send Reset Email';
+      passwordGroup.classList.add('hidden');
+      oauthGroup.classList.add('hidden');
+      passwordInput.required = false;
+      toggleAuth.innerText = '← Back to Log In';
+    } else if (mode === 'otp') {
+      title.innerText = 'OTP Verification';
+      submitBtn.innerText = 'Send OTP Passcode';
+      passwordGroup.classList.add('hidden');
+      oauthGroup.classList.add('hidden');
+      passwordInput.required = false;
+      toggleAuth.innerText = '← Back to Log In';
+    } else if (mode === 'verify-otp') {
+      title.innerText = 'Enter OTP Code';
+      submitBtn.innerText = 'Verify & Log In';
+      passwordGroup.classList.add('hidden');
+      otpInput.classList.remove('hidden');
+      oauthGroup.classList.add('hidden');
+      passwordInput.required = false;
+      toggleAuth.innerText = '← Back to Log In';
+    }
+  }
+
   function toggleAuthMode() {
-    isSignUp = !isSignUp;
-    document.getElementById('title').innerText = isSignUp ? 'Sign Up' : 'Sign In';
-    document.getElementById('submit-btn').innerText = isSignUp ? 'Register' : 'Log In';
-    document.getElementById('toggle-auth').innerText = isSignUp ? 'Already have an account? Log In' : 'Need an account? Sign Up';
+    if (currentMode === 'signin') {
+      setMode('signup');
+    } else {
+      setMode('signin');
+    }
   }
 
   // Handle Form Submission
@@ -106,8 +170,10 @@
 
     const email = document.getElementById('email').value;
     const password = document.getElementById('password').value;
+    const token = document.getElementById('otp-token').value;
 
-    if (isSignUp) {
+    if (currentMode === 'signup') {
+      // Sign Up Flow
       const { data, error } = await supabase.auth.signUp({ email, password });
       if (error) return alert(error.message);
       
@@ -116,15 +182,46 @@
       } else {
         alert("Check your email for the confirmation link!");
       }
-    } else {
+
+    } else if (currentMode === 'signin') {
+      // Standard Password Login
       const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+      if (error) return alert(error.message);
+
+      handleAuthSuccess(data.session.access_token);
+
+    } else if (currentMode === 'reset') {
+      // Forgot Password Flow
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: window.location.origin + '/auth/verify'
+      });
+      if (error) return alert(error.message);
+      
+      alert("Password reset email sent! Check your inbox.");
+      setMode('signin');
+
+    } else if (currentMode === 'otp') {
+      // Send OTP Passcode
+      const { error } = await supabase.auth.signInWithOtp({ email });
+      if (error) return alert(error.message);
+
+      alert("A one-time passcode has been sent to your email!");
+      setMode('verify-otp');
+
+    } else if (currentMode === 'verify-otp') {
+      // Verify OTP Code
+      const { data, error } = await supabase.auth.verifyOtp({
+        email,
+        token,
+        type: 'email'
+      });
       if (error) return alert(error.message);
 
       handleAuthSuccess(data.session.access_token);
     }
   });
 
-  // OAuth Handler (Google / Microsoft)
+  // OAuth Handler
   async function loginWithOAuth(provider) {
     if (!supabase) return alert("System initializing, please wait a moment...");
 
