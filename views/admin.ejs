@@ -231,6 +231,8 @@
     // Update status (Approve / Reject) via API
     async function updateUserStatus(userId, status) {
         try {
+            alert(userId);
+            alert(currentAdminId);
             const response = await fetch('/api/users/update-status', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
