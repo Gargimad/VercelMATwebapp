@@ -22,18 +22,37 @@
 
         <div class="card" id="step2">
             <h2>What's your role?</h2>
-            <select name="role" style="width: 100%; padding: 12px; margin-bottom: 20px; border-radius: 6px; border: 1px solid #ccc;">
+            <select name="role" class="form-select">
                 <option value="tutor">Tutor</option>
                 <option value="tutee">Tutee</option>
                 <option value="both">Both (Tutee & Tutor)</option>
                 <option value="admin">School Admin</option>
             </select>
-            <button type="button" onclick="nextStep(2, 3)">Next Step</button>
+            <div class="button-group">
+                <button type="button" onclick="prevStep(2, 1)">Back</button>
+                <button type="button" onclick="nextStep(2, 3)">Next Step</button>
+            </div>
         </div>
 
         <div class="card" id="step3">
+            <h2>What grade are you in currently?</h2>
+            <select name="grade" class="form-select">
+                <option value="9">9th</option>
+                <option value="10">10th</option>
+                <option value="11">11th</option>
+                <option value="12">12th</option>
+                <option value="Admin">Admin</option>
+            </select>
+            <div class="button-group">
+                <button type="button" onclick="prevStep(3, 2)">Back</button>
+                <button type="button" onclick="nextStep(3, 4)">Next Step</button>
+            </div>
+        </div>
+
+        <div class="card" id="step4">
             <h2>What class would you like to get tutored in / tutor?</h2>
-            <select name="subject" style="width: 100%; padding: 12px; margin-bottom: 20px; border-radius: 6px; border: 1px solid #ccc;">
+            <p>Choose one for now and you can add more interest areas in Profile Settings once you're in!</p>
+            <select name="subject" class="form-select">
                 <option value="Algebra">Algebra</option>
                 <option value="Algebra H">Algebra H</option>
                 <option value="Advanced Algebra">Advanced Algebra</option>
@@ -44,13 +63,19 @@
                 <option value="AP Statistics">AP Statistics</option>
                 <option value="AMDM">AMDM</option>
             </select>
-            <button type="button" onclick="nextStep(3, 4)">Next Step</button>
+            <div class="button-group">
+                <button type="button" onclick="prevStep(4, 3)">Back</button>
+                <button type="button" onclick="nextStep(4, 5)">Next Step</button>
+            </div>
         </div>
 
-        <div class="card" id="step4">
+        <div class="card" id="step5">
             <h2>Perfect!</h2>
             <p>Click below to complete onboarding and enter your dashboard.</p>
-            <button type="submit">Complete Onboarding</button>
+            <div class="button-group">
+                <button type="button" onclick="prevStep(5, 4)">Back</button>
+                <button type="submit">Complete Onboarding</button>
+            </div>
         </div>
 
     </form>
@@ -80,6 +105,11 @@
 
             document.getElementById('step' + currentId).classList.remove('active');
             document.getElementById('step' + nextId).classList.add('active');
+        }
+
+        function prevStep(currentId, prevId) {
+            document.getElementById('step' + currentId).classList.remove('active');
+            document.getElementById('step' + prevId).classList.add('active');
         }
     </script>
 </body>

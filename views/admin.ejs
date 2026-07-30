@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JCHS Mu Alpha Theta - Admin Portal</title>
+    <link rel="stylesheet" href="/style.css">
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background-color: #f4f6f8;
+            margin: 0;
+            padding: 25px;
+            color: #333;
+        }
+        .container {
+            max-width: 1100px;
+            margin: auto;
+            background: #ffffff;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid #eef2f5;
+            padding-bottom: 15px;
+            margin-bottom: 25px;
+        }
+        .header h2 {
+            margin: 0;
+            color: #1a202c;
+        }
+        .logout-btn {
+            text-decoration: none;
+            color: #e53e3e;
+            font-weight: 600;
+            padding: 8px 12px;
+            border-radius: 6px;
+            transition: background 0.2s;
+        }
+        .logout-btn:hover {
+            background: #fff5f5;
+        }
+
+        /* Stats Section */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+        .stat-card {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+        }
+        .stat-card h3 {
+            margin: 0;
+            font-size: 28px;
+            color: #2b6cb0;
+        }
+        .stat-card p {
+            margin: 5px 0 0 0;
+            color: #4a5568;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        /* Filters */
+        .filter-group {
+            margin-bottom: 20px;
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        .filter-btn {
+            padding: 8px 18px;
+            border: 1px solid #cbd5e0;
+            background: #ffffff;
+            color: #4a5568;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+        .filter-btn:hover {
+            background: #f7fafc;
+        }
+        .filter-btn.active {
+            background: #3182ce;
+            color: white;
+            border-color: #3182ce;
+        }
+
+        /* Table Styling */
+        .table-responsive {
+            overflow-x: auto;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+        }
+        th, td {
+            padding: 14px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        th {
+            background-color: #f7fafc;
+            color: #4a5568;
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        
+        /* Badges */
+        .badge {
+            padding: 5px 10px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: capitalize;
+            display: inline-block;
+        }
+        .badge-pending { background: #fefcbf; color: #744210; }
+        .badge-active { background: #c6f6d5; color: #22543d; }
+        .badge-rejected { background: #fed7d7; color: #742a2a; }
+
+        /* Action Buttons */
+        .btn-approve {
+            background-color: #38a169;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 600;
+            margin-right: 5px;
+            transition: background 0.2s;
+        }
+        .btn-reject {
+            background-color: #e53e3e;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: background 0.2s;
+        }
+        .btn-approve:hover { background-color: #2f855a; }
+        .btn-reject:hover { background-color: #c53030; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header">
+        <h2>JCHS Mu Alpha Theta — Admin Portal</h2>
+        <a href="/logout" class="logout-btn">Logout</a>
+    </div>
+
+    <div class="stats-grid">
+        <div class="stat-card">
+            <h3><%= users.filter(u => u.status === 'pending').length %></h3>
+            <p>Pending Approvals</p>
+        </div>
+        <div class="stat-card">
+            <h3><%= users.filter(u => u.role === 'tutor' || u.role === 'both').length %></h3>
+            <p>Total Tutors</p>
+        </div>
+        <div class="stat-card">
+            <h3><%= users.filter(u => u.role === 'tutee' || u.role === 'both').length %></h3>
+            <p>Total Tutees</p>
+        </div>
+        <div class="stat-card">
+            <h3><%= users.length %></h3>
+            <p>Total Registered</p>
+        </div>
+    </div>
+
+    <div class="filter-group">
+        <button class="filter-btn active" onclick="filterUsers('all', this)">All Users</button>
+        <button class="filter-btn" onclick="filterUsers('pending', this)">Pending Only</button>
+        <button class="filter-btn" onclick="filterUsers('active', this)">Approved / Active</button>
+        <button class="filter-btn" onclick="filterUsers('rejected', this)">Rejected</button>
+    </div>
+
+    <div class="table-responsive">
+        <table>
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Role</th>
+                    <th>Grade</th>
+                    <th>Subject Interest</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody id="userTableBody">
+                <% if (users.length === 0) { %>
+                    <tr>
+                        <td colspan="6" style="text-align: center; color: #718096; padding: 20px;">No users found.</td>
+                    </tr>
+                <% } %>
+                <% users.forEach(user => { %>
+                    <tr class="user-row status-<%= user.status %>">
+                        <td><strong><%= user.username %></strong></td>
+                        <td style="text-transform: capitalize;"><%= user.role %></td>
+                        <td><%= user.grade ? user.grade + 'th' : 'N/A' %></td>
+                        <td><%= user.subject %></td>
+                        <td>
+                            <span class="badge badge-<%= user.status %>" id="badge-<%= user.id %>">
+                                <%= user.status %>
+                            </span>
+                        </td>
+                        <td>
+                            <button class="btn-approve" onclick="updateUserStatus('<%= user.id %>', 'active')">Approve</button>
+                            <button class="btn-reject" onclick="updateUserStatus('<%= user.id %>', 'rejected')">Reject</button>
+                        </td>
+                    </tr>
+                <% }); %>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+    // AJAX Call to update status dynamically
+    async function updateUserStatus(userId, status) {
+        try {
+            const response = await fetch('/api/users/update-status', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ userId, status })
+            });
+
+            const result = await response.json();
+
+            if (response.ok) {
+                // Update badge live in the DOM
+                const badge = document.getElementById(`badge-${userId}`);
+                badge.className = `badge badge-${status}`;
+                badge.innerText = status;
+
+                // Update class name on parent <tr> row for filtering
+                const row = badge.closest('tr');
+                row.className = `user-row status-${status}`;
+            } else {
+                alert('Error updating user: ' + result.error);
+            }
+        } catch (err) {
+            console.error('Update status error:', err);
+            alert('Failed to connect to server.');
+        }
+    }
+
+    // Filter table rows on screen
+    function filterUsers(filter, button) {
+        document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
+        button.classList.add('active');
+
+        const rows = document.querySelectorAll('.user-row');
+        rows.forEach(row => {
+            if (filter === 'all' || row.classList.contains(`status-${filter}`)) {
+                row.style.display = '';
+            } else {
+                row.style.display = 'none';
+            }
+        });
+    }
+</script>
+
+</body>
+</html>
