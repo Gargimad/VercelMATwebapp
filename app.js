@@ -12,9 +12,10 @@ const PORT = process.env.PORT || 3000;
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
 
-// Initialize Supabase Client
+// Initialize Standard Supabase Client (For general DB queries)
 const supabaseUrl = process.env.SUPABASE_URL;
 const supabaseKey = process.env.SUPABASE_PUBLISHABLE_KEY;
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
 if (!supabaseUrl || !supabaseKey) {
     console.error("CRITICAL ERROR: Missing SUPABASE_URL or SUPABASE_PUBLISHABLE_KEY.");
@@ -23,6 +24,12 @@ if (!supabaseUrl || !supabaseKey) {
 const supabase = createClient(
     supabaseUrl || 'https://placeholder.supabase.co', 
     supabaseKey || 'placeholder-key'
+);
+
+// Initialize Supabase Admin Client (For administrative tasks like wiping Auth users)
+const supabaseAdmin = createClient(
+    supabaseUrl || 'https://placeholder.supabase.co',
+    supabaseServiceKey || 'placeholder-key'
 );
 
 // Middleware
@@ -63,12 +70,14 @@ app.get('/pending', (req, res) => {
             <title>Account Pending Approval</title>
             <link rel="stylesheet" href="/style.css">
         </head>
-        <body style="display: flex; justify-content: center; align-items: center; min-height: 100vh; font-family: sans-serif; background-color: #f4f6f8;">
-            <div class="card" style="text-align: center; max-width: 400px; padding: 30px; background: white; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.1);">
-                <h2>⏳ Approval Pending</h2>
-                <p>Your account has been submitted for review! An officer needs to approve your registration before you can access the dashboard.</p>
-                <p>Please check back later.</p>
-                <a href="/logout" style="display: inline-block; margin-top: 15px; text-decoration: none; color: #007bff; font-weight: bold;">Return to Login</a>
+        <body style="display: flex; justify-content: center; align-items: center; min-height: 100vh; font-family: sans-serif; background-color: #f4f6f8; margin: 0;">
+            <div class="card" style="text-align: center; max-width: 450px; padding: 40px; background: white; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.08);">
+                <div style="font-size: 48px; margin-bottom: 15px;">⏳</div>
+                <h2 style="margin-top: 0; color: #1a202c;">Account Pending</h2>
+                <p style="color: #4a5568; font-size: 16px; line-height: 1.5; margin: 20px 0;">
+                    Please hold on while an administrator approves your account. Come back within 24 hours to view your dashboard!
+                </p>
+                <a href="/logout" style="display: inline-block; margin-top: 10px; text-decoration: none; color: #3182ce; font-weight: 600; font-size: 14px;">Return to Login</a>
             </div>
         </body>
         </html>
@@ -85,7 +94,7 @@ app.get('/auth/verify', async (req, res) => {
 
     const { data: profile } = await supabase
         .from('users')
-        .select('id, status')
+        .select('id, role, status')
         .eq('id', user.id)
         .maybeSingle();
 
@@ -95,13 +104,18 @@ app.get('/auth/verify', async (req, res) => {
         } else if (profile.status === 'rejected') {
             return res.status(403).send('Your registration request was not approved.');
         }
-        return res.redirect(`/dashboard?id=${user.id}`);
+
+        // Route admins to admin portal, students to dashboard
+        if (profile.role === 'admin') {
+            return res.redirect(`/admin?id=${user.id}`);
+        } else {
+            return res.redirect(`/dashboard?id=${user.id}`);
+        }
     } else {
         return res.redirect(`/onboarding?userId=${user.id}`);
     }
 });
 
-// Submit Onboarding Form Route
 // Submit Onboarding Form Route
 app.post('/submit-onboarding', async (req, res) => {
     const { userId, username, role, grade, subject } = req.body;
@@ -114,7 +128,6 @@ app.post('/submit-onboarding', async (req, res) => {
     // Admins are auto-approved; tutors and tutees start as 'pending'
     const accountStatus = (role === 'admin') ? 'active' : 'pending';
 
-    // Insert user profile into Supabase
     const { error } = await supabase
         .from('users')
         .insert([{ 
@@ -131,7 +144,6 @@ app.post('/submit-onboarding', async (req, res) => {
         return res.status(500).send('Could not save profile. Please try again.');
     }
 
-    // Redirect admins directly to the admin portal, others to pending screen
     if (role === 'admin') {
         res.redirect(`/admin?id=${userId}`);
     } else {
@@ -140,7 +152,7 @@ app.post('/submit-onboarding', async (req, res) => {
 });
 
 // =========================================================================
-// DASHBOARD & STUDENT ROUTES
+// STUDENT / TUTOR ROUTES
 // =========================================================================
 
 // Student Dashboard Route
@@ -151,7 +163,6 @@ app.get('/dashboard', async (req, res) => {
         return res.redirect('/');
     }
 
-    // Fetch User Profile
     const { data: user, error: userError } = await supabase
         .from('users')
         .select('*')
@@ -170,7 +181,6 @@ app.get('/dashboard', async (req, res) => {
         return res.status(403).send('Your account access has been restricted.');
     }
 
-    // Fetch User Sessions
     let sessions = [];
     const { data: sessionData, error: sessionError } = await supabase
         .from('sessions')
@@ -184,7 +194,7 @@ app.get('/dashboard', async (req, res) => {
     res.render('dashboard', { user, sessions });
 });
 
-// Create Tutoring Session Route
+// Create Tutoring Session Endpoint
 app.post('/api/sessions', async (req, res) => {
     const { title, peer_name, datetime, location, userId } = req.body;
 
@@ -201,27 +211,53 @@ app.post('/api/sessions', async (req, res) => {
 });
 
 // =========================================================================
-// ADMIN ROUTES
+// REAL PROTECTED ADMIN ROUTES
 // =========================================================================
 
-// Admin Dashboard View Route
+// Helper function to check if a user is an active admin
+async function verifyIsActiveAdmin(adminId) {
+    if (!adminId) return false;
+    const { data: adminUser, error } = await supabase
+        .from('users')
+        .select('role, status')
+        .eq('id', adminId)
+        .single();
+
+    if (error || !adminUser) return false;
+    return adminUser.role === 'admin' && adminUser.status === 'active';
+}
+
+// Protected Admin Dashboard Route
 app.get('/admin', async (req, res) => {
-    const { data: users, error } = await supabase
+    const adminId = req.query.id;
+
+    const isAdmin = await verifyIsActiveAdmin(adminId);
+    if (!isAdmin) {
+        return res.status(403).send('Access Denied: You do not have permission to view the Admin Portal.');
+    }
+
+    // Fetch all registered users
+    const { data: users, error: usersError } = await supabase
         .from('users')
         .select('*')
         .order('created_at', { ascending: false });
 
-    if (error) {
-        console.error('Error fetching users for admin:', error.message);
-        return res.status(500).send('Error loading admin portal.');
+    if (usersError) {
+        console.error('Error fetching users for admin:', usersError.message);
+        return res.status(500).send('Error loading admin portal data.');
     }
 
     res.render('admin', { users });
 });
 
-// Admin Update User Status API Endpoint (Approve / Reject)
+// Protected API Endpoint to Update User Status (Approve / Reject)
 app.post('/api/users/update-status', async (req, res) => {
-    const { userId, status } = req.body;
+    const { userId, status, adminId } = req.body;
+
+    const isAdmin = await verifyIsActiveAdmin(adminId);
+    if (!isAdmin) {
+        return res.status(403).json({ error: 'Permission denied. Active admin rights required.' });
+    }
 
     if (!userId || !['active', 'rejected', 'pending'].includes(status)) {
         return res.status(400).json({ error: 'Invalid user or status value.' });
@@ -237,7 +273,40 @@ app.post('/api/users/update-status', async (req, res) => {
         return res.status(500).json({ error: 'Failed to update user status.' });
     }
 
-    res.json({ success: true, message: `User status successfully updated to ${status}` });
+    res.json({ success: true, message: `User status updated to ${status}` });
+});
+
+// Protected API Endpoint to Completely Delete User (Auth & DB)
+app.post('/api/users/delete', async (req, res) => {
+    const { userId, adminId } = req.body;
+
+    const isAdmin = await verifyIsActiveAdmin(adminId);
+    if (!isAdmin) {
+        return res.status(403).json({ error: 'Permission denied. Active admin rights required.' });
+    }
+
+    if (!userId) {
+        return res.status(400).json({ error: 'User ID is required.' });
+    }
+
+    try {
+        // 1. Delete from Supabase Auth
+        const { error: authError } = await supabaseAdmin.auth.admin.deleteUser(userId);
+        if (authError) console.warn('Auth deletion note:', authError.message);
+
+        // 2. Delete from public.users table
+        const { error: dbError } = await supabase
+            .from('users')
+            .delete()
+            .eq('id', userId);
+
+        if (dbError) throw dbError;
+
+        res.json({ success: true, message: 'User deleted successfully.' });
+    } catch (err) {
+        console.error('Delete User Error:', err.message);
+        res.status(500).json({ error: err.message || 'Failed to delete user.' });
+    }
 });
 
 // Logout Route
@@ -245,7 +314,7 @@ app.get('/logout', (req, res) => {
     res.redirect('/');
 });
 
-// Server Start
+// Start Server
 if (process.env.NODE_ENV !== 'production') {
     app.listen(PORT, () => console.log(`Server running at http://localhost:${PORT}`));
 }

@@ -14,7 +14,7 @@
             color: #333;
         }
         .container {
-            max-width: 1100px;
+            max-width: 1150px;
             margin: auto;
             background: #ffffff;
             padding: 30px;
@@ -45,7 +45,7 @@
             background: #fff5f5;
         }
 
-        /* Stats Section */
+        /* Stats Grid */
         .stats-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -71,7 +71,7 @@
             font-weight: 500;
         }
 
-        /* Filters */
+        /* Filter Controls */
         .filter-group {
             margin-bottom: 20px;
             display: flex;
@@ -97,7 +97,7 @@
             border-color: #3182ce;
         }
 
-        /* Table Styling */
+        /* Table Design */
         .table-responsive {
             overflow-x: auto;
         }
@@ -132,29 +132,20 @@
         .badge-rejected { background: #fed7d7; color: #742a2a; }
 
         /* Action Buttons */
-        .btn-approve {
-            background-color: #38a169;
-            color: white;
+        .btn-action {
             border: none;
             padding: 6px 12px;
             border-radius: 4px;
             cursor: pointer;
             font-weight: 600;
-            margin-right: 5px;
-            transition: background 0.2s;
+            font-size: 13px;
+            margin-right: 4px;
+            transition: opacity 0.2s;
         }
-        .btn-reject {
-            background-color: #e53e3e;
-            color: white;
-            border: none;
-            padding: 6px 12px;
-            border-radius: 4px;
-            cursor: pointer;
-            font-weight: 600;
-            transition: background 0.2s;
-        }
-        .btn-approve:hover { background-color: #2f855a; }
-        .btn-reject:hover { background-color: #c53030; }
+        .btn-action:hover { opacity: 0.85; }
+        .btn-approve { background-color: #38a169; color: white; }
+        .btn-reject { background-color: #e53e3e; color: white; }
+        .btn-delete { background-color: #718096; color: white; }
     </style>
 </head>
 <body>
@@ -221,8 +212,9 @@
                             </span>
                         </td>
                         <td>
-                            <button class="btn-approve" onclick="updateUserStatus('<%= user.id %>', 'active')">Approve</button>
-                            <button class="btn-reject" onclick="updateUserStatus('<%= user.id %>', 'rejected')">Reject</button>
+                            <button class="btn-action btn-approve" onclick="updateUserStatus('<%= user.id %>', 'active')">Approve</button>
+                            <button class="btn-action btn-reject" onclick="updateUserStatus('<%= user.id %>', 'rejected')">Reject</button>
+                            <button class="btn-action btn-delete" onclick="deleteUser('<%= user.id %>')">Delete Account</button>
                         </td>
                     </tr>
                 <% }); %>
@@ -232,24 +224,32 @@
 </div>
 
 <script>
-    // AJAX Call to update status dynamically
+    // Get current Admin ID from URL parameter (?id=xyz)
+    const urlParams = new URLSearchParams(window.location.search);
+    const currentAdminId = urlParams.get('id');
+
+    // Update status (Approve / Reject) via API
     async function updateUserStatus(userId, status) {
         try {
             const response = await fetch('/api/users/update-status', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ userId, status })
+                body: JSON.stringify({ 
+                    userId, 
+                    status,
+                    adminId: currentAdminId 
+                })
             });
 
             const result = await response.json();
 
             if (response.ok) {
-                // Update badge live in the DOM
+                // Update badge live
                 const badge = document.getElementById(`badge-${userId}`);
                 badge.className = `badge badge-${status}`;
                 badge.innerText = status;
 
-                // Update class name on parent <tr> row for filtering
+                // Update row class
                 const row = badge.closest('tr');
                 row.className = `user-row status-${status}`;
             } else {
@@ -257,6 +257,37 @@
             }
         } catch (err) {
             console.error('Update status error:', err);
+            alert('Failed to connect to server.');
+        }
+    }
+
+    // Delete user completely from Auth and Database
+    async function deleteUser(userId) {
+        if (!confirm("Are you sure you want to completely delete this user? They will have to sign up again.")) {
+            return;
+        }
+
+        try {
+            const response = await fetch('/api/users/delete', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ 
+                    userId,
+                    adminId: currentAdminId
+                })
+            });
+
+            const result = await response.json();
+
+            if (response.ok) {
+                // Remove row from table
+                const badge = document.getElementById(`badge-${userId}`);
+                badge.closest('tr').remove();
+            } else {
+                alert('Error deleting user: ' + result.error);
+            }
+        } catch (err) {
+            console.error('Delete error:', err);
             alert('Failed to connect to server.');
         }
     }
