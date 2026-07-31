@@ -5,6 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>JCHS Mu Alpha Theta Onboarding</title>
     <link rel="stylesheet" href="/style.css">
+    <style>
+        .card { display: none; }
+        .card.active { display: block; }
+    </style>
 </head>
 <body>
 
@@ -61,7 +65,7 @@
         </div>
 
         <div class="card" id="step4">
-            <h2 id="subjectHeading">What class would you like to tutor in?</h2>
+            <h2 id="subjectHeading">What class do you need tutoring help in?</h2>
             <p>Choose your primary subject now. You can add more areas of interest in your profile settings later!</p>
             <select name="subject" id="subjectSelect" class="form-select">
                 <option value="Algebra">Algebra</option>
@@ -76,15 +80,6 @@
             </select>
             <div class="button-group">
                 <button type="button" onclick="prevStep(4, 3)">&larr; Back</button>
-                <button type="button" onclick="nextStep(4, 5)">Next Step &rarr;</button>
-            </div>
-        </div>
-
-        <div class="card" id="step5">
-            <h2>Perfect!</h2>
-            <p>Click below to complete onboarding and submit your registration for approval.</p>
-            <div class="button-group">
-                <button type="button" onclick="prevStep(5, 4)">&larr; Back</button>
                 <button type="submit">Complete Onboarding &rarr;</button>
             </div>
         </div>
@@ -160,7 +155,7 @@
                 const gradeSelect = document.getElementById('gradeSelect');
                 const subjectSelect = document.getElementById('subjectSelect');
 
-                // Inject default admin values so backend receive valid strings
+                // Inject default admin values so backend receives valid strings
                 gradeSelect.innerHTML += '<option value="Admin" selected>Admin</option>';
                 subjectSelect.innerHTML += '<option value="Admin" selected>Admin</option>';
 
