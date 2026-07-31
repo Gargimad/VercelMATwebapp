@@ -15,7 +15,7 @@ body {
     align-items: center;
 }
 
-/* Style the onboarding card */
+/* Style the cards (default visible) */
 .card {
     background-color: #ffffff;
     max-width: 400px;
@@ -24,6 +24,7 @@ body {
     border-radius: 12px;
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
     text-align: center;
+    box-sizing: border-box;
 }
 
 h2 {
@@ -37,8 +38,10 @@ p {
     margin-bottom: 20px;
 }
 
-/* Style the form input field */
-input[type="text"] {
+/* Style form input fields and dropdowns */
+input[type="text"],
+input[type="password"],
+.form-select {
     width: 100%;
     padding: 12px;
     margin: 10px 0 20px 0;
@@ -46,14 +49,17 @@ input[type="text"] {
     border-radius: 6px;
     box-sizing: border-box; /* Ensures padding doesn't affect total width */
     font-size: 14px;
+    background-color: #fff;
 }
 
-input[type="text"]:focus {
+input[type="text"]:focus,
+input[type="password"]:focus,
+.form-select:focus {
     border-color: #007BFF;
     outline: none;
 }
 
-/* Style the action button */
+/* Style action buttons */
 button {
     width: 100%;
     padding: 12px;
@@ -70,19 +76,20 @@ button {
 button:hover {
     background-color: #0056b3;
 }
-/* Hide all cards by default */
-.card {
-    display: none;
-    background-color: #ffffff;
-    max-width: 400px;
-    width: 90%;
-    padding: 30px;
-    border-radius: 12px;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-    text-align: center;
+
+/* Multi-step button layout */
+.button-group {
+    display: flex;
+    gap: 10px;
+    margin-top: 15px;
 }
 
-/* Only display the card that has the 'active' class */
-.card.active {
+/* MULTI-STEP FORM CARDS ONLY: Hide by default */
+form .card {
+    display: none;
+}
+
+/* Only display form cards that have the 'active' class */
+form .card.active {
     display: block;
 }
