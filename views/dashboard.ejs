@@ -5,57 +5,104 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard - JCHS Mu Alpha Theta</title>
     <style>
-        body {
+        * {
+            box-sizing: border-box;
             margin: 0;
             padding: 0;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #f1f5f9;
+        }
+
+        :root {
+            --primary: #0080ff;
+            --primary-dark: #0056b3;
+            --bg-main: #f1f5f9;
+            --sidebar-bg: #1b263b;
+            --card-border: #cbd5e1;
+            --proposed-bg: #fffbe6;
+            --proposed-border: #ffe58f;
+        }
+
+        body {
+            background-color: var(--bg-main);
             color: #1e293b;
             display: flex;
             min-height: 100vh;
         }
 
-        /* Sidebar Styling matching image */
+        /* --- HAMBURGER MENU & RESPONSIVE SIDEBAR --- */
+        .hamburger-btn {
+            display: none;
+            position: fixed;
+            top: 12px;
+            left: 15px;
+            z-index: 1100;
+            background: var(--sidebar-bg);
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 22px;
+            cursor: pointer;
+        }
+
+        .sidebar-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 999;
+        }
+
         .sidebar {
-            width: 240px;
-            background-color: #1b263b;
+            width: 250px;
+            background-color: var(--sidebar-bg);
             color: white;
             display: flex;
             flex-direction: column;
             padding: 20px 0;
-            box-sizing: border-box;
             flex-shrink: 0;
+            position: fixed;
+            height: 100vh;
+            z-index: 1000;
+            transition: transform 0.3s ease;
         }
+
         .sidebar-brand {
             font-size: 18px;
             font-weight: bold;
             padding: 0 20px 25px 20px;
             color: #ffffff;
         }
+
         .sidebar-menu {
             list-style: none;
             padding: 0;
             margin: 0;
             flex-grow: 1;
         }
+
         .sidebar-item {
             margin-bottom: 5px;
             padding: 0 10px;
         }
+
         .sidebar-link {
             display: block;
-            padding: 10px 15px;
+            padding: 12px 15px;
             color: #94a3b8;
             text-decoration: none;
             border-radius: 6px;
-            font-weight: 500;
+            font-weight: 600;
+            font-size: 14px;
             cursor: pointer;
             transition: all 0.2s;
         }
+
         .sidebar-link:hover, .sidebar-link.active {
             background-color: #334155;
             color: #ffffff;
         }
+
         .sidebar-footer {
             border-top: 1px solid #334155;
             padding: 15px 20px 0 20px;
@@ -63,178 +110,167 @@
             color: #94a3b8;
         }
 
-        /* Main Wrapper & Top Header */
+        /* --- MAIN LAYOUT & HEADER --- */
         .main-wrapper {
             flex-grow: 1;
+            margin-left: 250px;
             display: flex;
             flex-direction: column;
-            overflow-y: auto;
+            width: calc(100% - 250px);
+            min-height: 100vh;
         }
 
         .navbar {
-            background-color: #0080ff;
+            background-color: var(--primary);
             color: white;
             padding: 12px 30px;
             display: flex;
             justify-content: flex-end;
             align-items: center;
         }
+
         .user-badge {
             background-color: rgba(255, 255, 255, 0.25);
-            padding: 4px 12px;
-            border-radius: 15px;
+            padding: 5px 14px;
+            border-radius: 20px;
             font-size: 13px;
             font-weight: 600;
         }
 
-        /* Content Area */
+        .content-body {
+            padding: 30px;
+            flex: 1;
+        }
+
         .tab-content {
             display: none;
-            padding: 30px 40px;
         }
+
         .tab-content.active {
             display: block;
         }
 
-        .welcome-title {
-            font-size: 38px;
-            font-weight: bold;
-            margin-top: 0;
-            margin-bottom: 25px;
-            color: #0f172a;
-        }
-
-        /* Dashboard Grid Layout */
-        .dashboard-grid {
-            display: grid;
-            grid-template-columns: 1.8fr 1.2fr;
-            gap: 25px;
-        }
-
-        /* Rounded Blue Outline Cards */
-        .card-outlined {
-            background: #ffffff;
-            border: 2px solid #0080ff;
-            border-radius: 12px;
-            padding: 20px;
-            margin-bottom: 25px;
-            min-height: 180px;
-        }
-        .card-outlined h3 {
-            margin: 0 0 15px 0;
-            text-align: center;
-            font-size: 20px;
-            color: #0f172a;
-        }
-
-        /* Filled Light Blue Card */
-        .card-filled {
-            background-color: #93c5fd;
-            border-radius: 12px;
-            padding: 20px;
-            margin-bottom: 25px;
-            box-sizing: border-box;
-        }
-
-        /* Hours Banner inside Light Blue Card */
-        .hours-container {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
+        h2 {
+            font-size: 24px;
             margin-bottom: 20px;
-        }
-        .hours-text {
-            color: #880000;
-            font-size: 20px;
-            font-weight: bold;
-            line-height: 1.2;
-            max-width: 180px;
-        }
-        .hours-number {
-            color: #880000;
-            font-size: 48px;
-            font-weight: bold;
+            color: #0f172a;
         }
 
-        /* Action Buttons */
-        .btn-group {
-            display: flex;
-            gap: 10px;
+        .card {
+            background: #ffffff;
+            border: 1px solid var(--card-border);
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 15px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
         }
-        .btn-dark-red {
-            flex: 1;
-            background-color: #a00000;
+
+        .user-card {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .subject-badge {
+            display: inline-block;
+            background-color: #e2e8f0;
+            color: #334155;
+            font-size: 12px;
+            font-weight: 600;
+            padding: 3px 8px;
+            border-radius: 4px;
+            margin-right: 5px;
+            margin-top: 4px;
+        }
+
+        .btn-primary {
+            background-color: var(--primary);
             color: white;
             border: none;
-            padding: 10px;
-            border-radius: 8px;
-            font-weight: bold;
-            font-size: 13px;
+            padding: 9px 16px;
+            border-radius: 6px;
+            font-weight: 600;
             cursor: pointer;
-            text-align: center;
             transition: background 0.2s;
         }
-        .btn-dark-red:hover {
-            background-color: #7a0000;
+
+        .btn-primary:hover {
+            background-color: var(--primary-dark);
         }
 
-        /* Tutee List */
-        .tutee-list-title {
-            text-align: center;
-            font-weight: bold;
-            font-size: 18px;
+        .form-group {
             margin-bottom: 15px;
-            color: #0f172a;
-        }
-        .tutee-list {
-            list-style-type: disc;
-            padding-left: 20px;
-            margin: 0;
-            font-weight: bold;
-            font-size: 16px;
-            line-height: 1.8;
-            color: #0f172a;
         }
 
-        /* Session List inside Card */
-        .session-item {
-            display: flex;
-            justify-content: space-between;
-            padding: 8px 0;
-            border-bottom: 1px solid #e2e8f0;
-        }
-        .session-item:last-child {
-            border-bottom: none;
+        .form-group label {
+            display: block;
+            margin-bottom: 6px;
+            font-weight: 600;
+            font-size: 14px;
         }
 
-        /* Dialog Modal */
+        .form-control {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #cbd5e1;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+
         dialog {
             border: none;
-            border-radius: 8px;
-            padding: 20px;
+            border-radius: 10px;
+            padding: 25px;
             width: 90%;
-            max-width: 400px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+            max-width: 450px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+            margin: auto;
         }
-        dialog::backdrop { background: rgba(0, 0, 0, 0.5); }
-        .form-group { margin-bottom: 15px; }
-        .form-group label { display: block; margin-bottom: 5px; font-size: 14px; }
-        .form-group input { width: 100%; padding: 8px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 4px; }
+
+        dialog::backdrop {
+            background: rgba(0, 0, 0, 0.5);
+        }
+
+        @media (max-width: 768px) {
+            .hamburger-btn { display: block; }
+            .sidebar { transform: translateX(-100%); }
+            .sidebar.active { transform: translateX(0); }
+            .sidebar-overlay.active { display: block; }
+            .main-wrapper { margin-left: 0; width: 100%; }
+            .navbar { padding: 12px 15px 12px 60px; }
+            .content-body { padding: 20px 15px; }
+        }
     </style>
 </head>
 <body>
 
-    <div class="sidebar">
+    <button class="hamburger-btn" onclick="toggleSidebar()">☰</button>
+    <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+
+    <div class="sidebar" id="sidebar">
         <div class="sidebar-brand">JCHS Mu Alpha Theta</div>
         <ul class="sidebar-menu">
-            <li class="sidebar-item"><a class="sidebar-link active" onclick="switchTab('dashboard-tab', this)">Dashboard</a></li>
-            <li class="sidebar-item"><a class="sidebar-link" onclick="switchTab('sessions-tab', this)">Sessions</a></li>
-            <li class="sidebar-item"><a class="sidebar-link" onclick="switchTab('resources-tab', this)">Resources</a></li>
-            <li class="sidebar-item"><a class="sidebar-link" onclick="switchTab('settings-tab', this)">Profile Settings</a></li>
+            <li class="sidebar-item">
+                <a class="sidebar-link active" onclick="switchTab('schedule-tab', this)">Schedule New Session</a>
+            </li>
+            <li class="sidebar-item">
+                <a class="sidebar-link" onclick="switchTab('proposed-tab', this)">Proposed Sessions</a>
+            </li>
+            <li class="sidebar-item">
+                <a class="sidebar-link" onclick="switchTab('upcoming-tab', this)">Upcoming Sessions</a>
+            </li>
+            <li class="sidebar-item">
+                <a class="sidebar-link" onclick="switchTab('past-tab', this)">Past Sessions</a>
+            </li>
+            <li class="sidebar-item">
+                <a class="sidebar-link" onclick="switchTab('settings-tab', this)">Settings</a>
+            </li>
         </ul>
         <div class="sidebar-footer">
             Logged in as:<br>
-            <strong><%= user.username %></strong>
+            <strong><%= user.username %></strong> (<%= user.role.toUpperCase() %>)
             <br><br>
             <a href="/logout" style="color: #f87171; text-decoration: none;">Logout</a>
         </div>
@@ -247,163 +283,171 @@
             </div>
         </div>
 
-        <div id="dashboard-tab" class="tab-content active">
-            <h1 class="welcome-title">Hi <%= user.username %>,</h1>
+        <div class="content-body">
 
-            <div class="dashboard-grid">
-                <div>
-                    <div class="card-outlined">
-                        <h3>Upcoming Sessions</h3>
-                        <div id="session-list">
-                            <% if (sessions.length === 0) { %>
-                                <p style="color: #64748b; text-align: center;">No upcoming sessions scheduled.</p>
-                            <% } else { %>
-                                <% sessions.forEach(session => { %>
-                                    <div class="session-item">
-                                        <div>
-                                            <strong><%= session.title %></strong><br>
-                                            <span style="font-size: 12px; color: #64748b;">Peer: <%= session.peer_name %></span>
-                                        </div>
-                                        <div style="text-align: right;">
-                                            <span><%= session.datetime %></span><br>
-                                            <span style="font-size: 12px; color: #64748b;"><%= session.location %></span>
-                                        </div>
+            <div id="schedule-tab" class="tab-content active">
+                <h2>Schedule New Session</h2>
+
+                <% if (user.role === 'tutor') { %>
+                    <h3>Registered Tutees Needing Help</h3>
+                    <div style="margin-top: 15px;">
+                        <% if (locals.tutees && tutees.length > 0) { %>
+                            <% tutees.forEach(tutee => { %>
+                                <div class="card user-card">
+                                    <div>
+                                        <strong><%= tutee.username %></strong>
+                                        <p style="font-size: 13px; color: #64748b; margin-top: 2px;">
+                                            Needs help with: 
+                                            <span class="subject-badge"><%= tutee.subject || 'Not specified' %></span>
+                                        </p>
                                     </div>
+                                    <button class="btn-primary" onclick="openProposeModal('<%= tutee.id %>', '<%= tutee.username %>', '<%= tutee.subject %>')">Propose Session</button>
+                                </div>
+                            <% }) %>
+                        <% } else { %>
+                            <p style="color: #64748b;">No registered tutees available right now.</p>
+                        <% } %>
+                    </div>
+                <% } else { %>
+                    <h3>Registered Tutors Available</h3>
+                    <div style="margin-top: 15px;">
+                        <% if (tutors && tutors.length > 0) { %>
+                            <% tutors.forEach(tutor => { %>
+                                <div class="card user-card">
+                                    <div>
+                                        <strong><%= tutor.username %></strong>
+                                        <p style="font-size: 13px; color: #64748b; margin-top: 2px;">
+                                            Proficient in: 
+                                            <% if (Array.isArray(tutor.subjects) && tutor.subjects.length > 0) { %>
+                                                <% tutor.subjects.forEach(subj => { %>
+                                                    <span class="subject-badge"><%= subj %></span>
+                                                <% }) %>
+                                            <% } else if (tutor.subject) { %>
+                                                <span class="subject-badge"><%= tutor.subject %></span>
+                                            <% } else { %>
+                                                <span class="subject-badge">General Math</span>
+                                            <% } %>
+                                        </p>
+                                    </div>
+                                    <button class="btn-primary" onclick="openProposeModal('<%= tutor.id %>', '<%= tutor.username %>', 'Tutoring Session')">Request Session</button>
+                                </div>
+                            <% }) %>
+                        <% } else { %>
+                            <p style="color: #64748b;">No registered tutors available right now.</p>
+                        <% } %>
+                    </div>
+                <% } %>
+            </div>
+
+            <div id="proposed-tab" class="tab-content">
+                <h2>Proposed Sessions</h2>
+                <p style="color: #64748b;">All session proposals requiring confirmation will appear here.</p>
+            </div>
+
+            <div id="upcoming-tab" class="tab-content">
+                <h2>Upcoming Sessions</h2>
+                <p style="color: #64748b;">Confirmed scheduled sessions will display here.</p>
+            </div>
+
+            <div id="past-tab" class="tab-content">
+                <h2>Past Sessions</h2>
+                <p style="color: #64748b;">History of finished tutoring hours.</p>
+            </div>
+
+            <div id="settings-tab" class="tab-content">
+                <h2>Settings & Profile Information</h2>
+                <div class="card" style="max-width: 500px;">
+                    <form action="/update-profile" method="POST">
+                        <div class="form-group">
+                            <label>Full Name</label>
+                            <input type="text" class="form-control" name="username" value="<%= user.username %>" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Role</label>
+                            <input type="text" class="form-control" value="<%= user.role %>" disabled style="background: #f1f5f9;">
+                        </div>
+
+                        <div class="form-group">
+                            <label>
+                                <%= user.role === 'tutor' ? 'Proficient Subject Areas (Hold Ctrl/Cmd to select multiple)' : 'Subject You Need Help In' %>
+                            </label>
+                            
+                            <% 
+                              const availableSubjects = [
+                                'Algebra', 'Algebra H', 'Advanced Algebra', 
+                                'Precalculus', 'AP Precalculus', 'AP Calculus AB', 
+                                'AP Calculus BC', 'AP Statistics', 'AMDM'
+                              ];
+                              const userSubjects = Array.isArray(user.subjects) ? user.subjects : [user.subject];
+                            %>
+
+                            <select class="form-control" name="subjects" <%= user.role === 'tutor' ? 'multiple style="height: 150px;"' : '' %> required>
+                                <% availableSubjects.forEach(subj => { %>
+                                    <option value="<%= subj %>" <%= userSubjects.includes(subj) ? 'selected' : '' %>>
+                                        <%= subj %>
+                                    </option>
                                 <% }) %>
-                            <% } %>
+                            </select>
                         </div>
-                    </div>
 
-                    <div class="card-outlined">
-                        <h3>View Submissions and Resources</h3>
-                        <p style="color: #64748b; text-align: center;">Access worksheets, formula sheets, and student submissions.</p>
-                    </div>
-                </div>
-
-                <div>
-                    <div class="card-filled">
-                        <div class="hours-container">
-                            <div class="hours-text">
-                                Total Hours
-                            </div>
-                            <div class="hours-number">
-                                : <%= sessions.length * 1.5 %>
-                            </div>
-                        </div>
-                        <div class="btn-group">
-                            <button class="btn-dark-red" onclick="switchTab('resources-tab', document.querySelectorAll('.sidebar-link')[2])">View Session Recording</button>
-                            <button class="btn-dark-red" onclick="document.getElementById('sessionModal').showModal()">Log Hours</button>
-                        </div>
-                    </div>
-
-                    <div class="card-filled">
-                        <div class="tutee-list-title">Your Current Tutee List</div>
-                        <ul class="tutee-list">
-                            <li>Brian Houston</li>
-                            <li>Kimberly Kim</li>
-                            <li>Shawn Westover</li>
-                            <li>Tara Mara</li>
-                        </ul>
-                    </div>
+                        <button type="submit" class="btn-primary" style="margin-top: 10px;">Save Profile Changes</button>
+                    </form>
                 </div>
             </div>
-        </div>
 
-        <div id="sessions-tab" class="tab-content">
-            <div class="card-outlined">
-                <h3>All Scheduled Sessions</h3>
-                <ul>
-                    <% if (sessions.length === 0) { %>
-                        <li>No recorded sessions.</li>
-                    <% } else { %>
-                        <% sessions.forEach(s => { %>
-                            <li><strong><%= s.title %></strong> with <%= s.peer_name %> at <%= s.location %> (<%= s.datetime %>)</li>
-                        <% }) %>
-                    <% } %>
-                </ul>
-            </div>
-        </div>
-
-        <div id="resources-tab" class="tab-content">
-            <div class="card-outlined">
-                <h3>Math Learning Resources</h3>
-                <ul>
-                    <li><a href="#">Algebra Practice Worksheets</a></li>
-                    <li><a href="#">AP Calculus Formula Sheets</a></li>
-                    <li><a href="#">Peer Tutoring Guidelines</a></li>
-                </ul>
-            </div>
-        </div>
-
-        <div id="settings-tab" class="tab-content">
-            <div class="card-outlined">
-                <h3>Profile Settings</h3>
-                <p><strong>Name:</strong> <%= user.username %></p>
-                <p><strong>Role:</strong> <%= user.role %></p>
-                <p><strong>Primary Math Subject:</strong> <%= user.subject %></p>
-            </div>
         </div>
     </div>
 
-    <dialog id="sessionModal">
-        <h3 style="margin-top: 0;">Log Tutoring Session</h3>
-        <form id="createSessionForm">
+    <dialog id="proposalModal">
+        <h3 style="margin-bottom: 15px;">Propose 3 Session Times</h3>
+        <p style="font-size: 13px; color: #64748b; margin-bottom: 15px;" id="modalTargetText"></p>
+
+        <form id="proposeForm" action="/propose-session" method="POST">
+            <input type="hidden" id="targetUserId" name="targetUserId">
+            
             <div class="form-group">
-                <label>Topic / Title</label>
-                <input type="text" id="title" required placeholder="e.g., AP Calc BC Prep">
+                <label>Preference 1</label>
+                <input type="datetime-local" class="form-control" name="pref1" required>
             </div>
             <div class="form-group">
-                <label>Tutee Name</label>
-                <input type="text" id="peer_name" required placeholder="e.g., Brian Houston">
+                <label>Preference 2</label>
+                <input type="datetime-local" class="form-control" name="pref2" required>
             </div>
             <div class="form-group">
-                <label>Date & Time</label>
-                <input type="text" id="datetime" required placeholder="e.g., Today, 3:30 PM">
+                <label>Preference 3</label>
+                <input type="datetime-local" class="form-control" name="pref3" required>
             </div>
-            <div class="form-group">
-                <label>Location</label>
-                <input type="text" id="location" required placeholder="e.g., Room 214">
-            </div>
-            <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 15px;">
-                <button type="button" class="btn-dark-red" style="background: #cbd5e1; color: #333;" onclick="document.getElementById('sessionModal').close()">Cancel</button>
-                <button type="submit" class="btn-dark-red">Save Session</button>
+
+            <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px;">
+                <button type="button" class="btn-primary" style="background: #cbd5e1; color: #333;" onclick="document.getElementById('proposalModal').close()">Cancel</button>
+                <button type="submit" class="btn-primary">Submit Proposal</button>
             </div>
         </form>
     </dialog>
 
     <script>
+        function toggleSidebar() {
+            document.getElementById('sidebar').classList.toggle('active');
+            document.getElementById('sidebarOverlay').classList.toggle('active');
+        }
+
         function switchTab(tabId, element) {
             document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
             document.querySelectorAll('.sidebar-link').forEach(link => link.classList.remove('active'));
-            
+
             document.getElementById(tabId).classList.add('active');
             if (element) element.classList.add('active');
+
+            document.getElementById('sidebar').classList.remove('active');
+            document.getElementById('sidebarOverlay').classList.remove('active');
         }
 
-        document.getElementById('createSessionForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-
-            const urlParams = new URLSearchParams(window.location.search);
-            const userId = urlParams.get('id');
-
-            const payload = {
-                title: document.getElementById('title').value,
-                peer_name: document.getElementById('peer_name').value,
-                datetime: document.getElementById('datetime').value,
-                location: document.getElementById('location').value,
-                userId: userId
-            };
-
-            const response = await fetch('/api/sessions', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
-            });
-
-            if (response.ok) {
-                window.location.reload();
-            }
-        });
+        function openProposeModal(id, name, subject) {
+            document.getElementById('targetUserId').value = id;
+            document.getElementById('modalTargetText').innerText = `Select 3 date/time options for ${name} (${subject}).`;
+            document.getElementById('proposalModal').showModal();
+        }
     </script>
 </body>
 </html>

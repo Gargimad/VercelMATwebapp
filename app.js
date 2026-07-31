@@ -173,7 +173,11 @@ app.get('/dashboard', async (req, res) => {
         sessions = sessionData;
     }
 
-    res.render('dashboard', { user, sessions });
+    res.render('dashboard', { 
+        user: req.user,
+        tutees: tutees || [], 
+        tutors: tutors || []
+    });
 });
 
 // Create Tutoring Session Endpoint
