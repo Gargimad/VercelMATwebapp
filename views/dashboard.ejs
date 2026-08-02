@@ -15,7 +15,6 @@
             min-height: 100vh;
         }
 
-        /* Sidebar Styling matching image */
         .sidebar {
             width: 240px;
             background-color: #1b263b;
@@ -63,7 +62,6 @@
             color: #94a3b8;
         }
 
-        /* Main Wrapper & Top Header */
         .main-wrapper {
             flex-grow: 1;
             display: flex;
@@ -87,7 +85,6 @@
             font-weight: 600;
         }
 
-        /* Content Area */
         .tab-content {
             display: none;
             padding: 30px 40px;
@@ -104,14 +101,48 @@
             color: #0f172a;
         }
 
-        /* Dashboard Grid Layout */
-        .dashboard-grid {
+        .square-cards-container {
             display: grid;
-            grid-template-columns: 1.8fr 1.2fr;
-            gap: 25px;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 20px;
+            margin-top: 20px;
         }
 
-        /* Rounded Blue Outline Cards */
+        .card-square {
+            background: #ffffff;
+            border: 2px solid #0080ff;
+            border-radius: 12px;
+            aspect-ratio: 1 / 1;
+            display: flex;
+            padding: 12px;
+            box-sizing: border-box;
+        }
+
+        .card-button {
+            width: 100%;
+            height: 100%;
+            background-color: #1b263b;
+            color: #ffffff;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 15px;
+            font-family: inherit;
+            cursor: pointer;
+            padding: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            line-height: 1.3;
+            transition: all 0.2s ease;
+        }
+
+        .card-button:hover {
+            background-color: #334155;
+            color: #ffffff;
+        }
+
         .card-outlined {
             background: #ffffff;
             border: 2px solid #0080ff;
@@ -120,94 +151,7 @@
             margin-bottom: 25px;
             min-height: 180px;
         }
-        .card-outlined h3 {
-            margin: 0 0 15px 0;
-            text-align: center;
-            font-size: 20px;
-            color: #0f172a;
-        }
 
-        /* Filled Light Blue Card */
-        .card-filled {
-            background-color: #93c5fd;
-            border-radius: 12px;
-            padding: 20px;
-            margin-bottom: 25px;
-            box-sizing: border-box;
-        }
-
-        /* Hours Banner inside Light Blue Card */
-        .hours-container {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 20px;
-        }
-        .hours-text {
-            color: #880000;
-            font-size: 20px;
-            font-weight: bold;
-            line-height: 1.2;
-            max-width: 180px;
-        }
-        .hours-number {
-            color: #880000;
-            font-size: 48px;
-            font-weight: bold;
-        }
-
-        /* Action Buttons */
-        .btn-group {
-            display: flex;
-            gap: 10px;
-        }
-        .btn-dark-red {
-            flex: 1;
-            background-color: #a00000;
-            color: white;
-            border: none;
-            padding: 10px;
-            border-radius: 8px;
-            font-weight: bold;
-            font-size: 13px;
-            cursor: pointer;
-            text-align: center;
-            transition: background 0.2s;
-        }
-        .btn-dark-red:hover {
-            background-color: #7a0000;
-        }
-
-        /* Tutee List */
-        .tutee-list-title {
-            text-align: center;
-            font-weight: bold;
-            font-size: 18px;
-            margin-bottom: 15px;
-            color: #0f172a;
-        }
-        .tutee-list {
-            list-style-type: disc;
-            padding-left: 20px;
-            margin: 0;
-            font-weight: bold;
-            font-size: 16px;
-            line-height: 1.8;
-            color: #0f172a;
-        }
-
-        /* Session List inside Card */
-        .session-item {
-            display: flex;
-            justify-content: space-between;
-            padding: 8px 0;
-            border-bottom: 1px solid #e2e8f0;
-        }
-        .session-item:last-child {
-            border-bottom: none;
-        }
-
-        /* Dialog Modal */
         dialog {
             border: none;
             border-radius: 8px;
@@ -218,8 +162,66 @@
         }
         dialog::backdrop { background: rgba(0, 0, 0, 0.5); }
         .form-group { margin-bottom: 15px; }
-        .form-group label { display: block; margin-bottom: 5px; font-size: 14px; }
+        .form-group label { display: block; margin-bottom: 5px; font-size: 14px; font-weight: 600; }
         .form-group input { width: 100%; padding: 8px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 4px; }
+
+        .btn-dark-red {
+            background-color: #a00000;
+            color: white;
+            border: none;
+            padding: 10px;
+            border-radius: 8px;
+            font-weight: bold;
+            font-size: 13px;
+            cursor: pointer;
+        }
+
+        .btn-green {
+            background-color: #16a34a;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-weight: bold;
+            font-size: 12px;
+            cursor: pointer;
+        }
+
+        .btn-red-outline {
+            background-color: transparent;
+            color: #dc2626;
+            border: 1px solid #dc2626;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-weight: bold;
+            font-size: 12px;
+            cursor: pointer;
+        }
+
+        .proposed-card {
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 15px;
+            background: #f8fafc;
+        }
+
+        .option-chip {
+            display: inline-block;
+            background: #e2e8f0;
+            padding: 6px 12px;
+            border-radius: 16px;
+            font-size: 13px;
+            margin: 4px;
+            cursor: pointer;
+            border: 1px solid #cbd5e1;
+        }
+
+        .option-chip.selected {
+            background: #0080ff;
+            color: white;
+            border-color: #0080ff;
+        }
     </style>
 </head>
 <body>
@@ -228,8 +230,12 @@
         <div class="sidebar-brand">JCHS Mu Alpha Theta</div>
         <ul class="sidebar-menu">
             <li class="sidebar-item"><a class="sidebar-link active" onclick="switchTab('dashboard-tab', this)">Dashboard</a></li>
-            <li class="sidebar-item"><a class="sidebar-link" onclick="switchTab('sessions-tab', this)">Sessions</a></li>
+            <li class="sidebar-item"><a class="sidebar-link" onclick="switchTab('schedule-tab', this)">Schedule Session</a></li>
+            <li class="sidebar-item"><a class="sidebar-link" onclick="switchTab('proposed-tab', this); loadProposedSessions();">Proposed Sessions</a></li>
+            <li class="sidebar-item"><a class="sidebar-link" onclick="switchTab('upcoming-tab', this)">Upcoming Sessions</a></li>
+            <li class="sidebar-item"><a class="sidebar-link" onclick="switchTab('past-tab', this)">Past Sessions</a></li>
             <li class="sidebar-item"><a class="sidebar-link" onclick="switchTab('resources-tab', this)">Resources</a></li>
+            <li class="sidebar-item"><a class="sidebar-link" onclick="switchTab('competitions-tab', this)">Competitions</a></li>
             <li class="sidebar-item"><a class="sidebar-link" onclick="switchTab('settings-tab', this)">Profile Settings</a></li>
         </ul>
         <div class="sidebar-footer">
@@ -250,77 +256,144 @@
         <div id="dashboard-tab" class="tab-content active">
             <h1 class="welcome-title">Hi <%= user.username %>,</h1>
 
-            <div class="dashboard-grid">
-                <div>
-                    <div class="card-outlined">
-                        <h3>Upcoming Sessions</h3>
-                        <div id="session-list">
-                            <% if (sessions.length === 0) { %>
-                                <p style="color: #64748b; text-align: center;">No upcoming sessions scheduled.</p>
-                            <% } else { %>
-                                <% sessions.forEach(session => { %>
-                                    <div class="session-item">
-                                        <div>
-                                            <strong><%= session.title %></strong><br>
-                                            <span style="font-size: 12px; color: #64748b;">Peer: <%= session.peer_name %></span>
-                                        </div>
-                                        <div style="text-align: right;">
-                                            <span><%= session.datetime %></span><br>
-                                            <span style="font-size: 12px; color: #64748b;"><%= session.location %></span>
-                                        </div>
-                                    </div>
-                                <% }) %>
-                            <% } %>
-                        </div>
-                    </div>
-
-                    <div class="card-outlined">
-                        <h3>View Submissions and Resources</h3>
-                        <p style="color: #64748b; text-align: center;">Access worksheets, formula sheets, and student submissions.</p>
-                    </div>
+            <div class="square-cards-container">
+                <div class="card-square">
+                    <button class="card-button" style="background-color: #550000;" onclick="switchTab('proposed-tab', document.querySelectorAll('.sidebar-link')[2]); loadProposedSessions();">
+                        View proposed sessions
+                    </button>
                 </div>
 
-                <div>
-                    <div class="card-filled">
-                        <div class="hours-container">
-                            <div class="hours-text">
-                                Total Hours
-                            </div>
-                            <div class="hours-number">
-                                : <%= sessions.length * 1.5 %>
-                            </div>
-                        </div>
-                        <div class="btn-group">
-                            <button class="btn-dark-red" onclick="switchTab('resources-tab', document.querySelectorAll('.sidebar-link')[2])">View Session Recording</button>
-                            <button class="btn-dark-red" onclick="document.getElementById('sessionModal').showModal()">Log Hours</button>
-                        </div>
-                    </div>
+                <div class="card-square">
+                    <button class="card-button" style="background-color: #550000;" onclick="switchTab('upcoming-tab', document.querySelectorAll('.sidebar-link')[3])">
+                        View upcoming sessions
+                    </button>
+                </div>
 
-                    <div class="card-filled">
-                        <div class="tutee-list-title">Your Current Tutee List</div>
-                        <ul class="tutee-list">
-                            <li>Brian Houston</li>
-                            <li>Kimberly Kim</li>
-                            <li>Shawn Westover</li>
-                            <li>Tara Mara</li>
-                        </ul>
-                    </div>
+                <div class="card-square">
+                    <button class="card-button" style="background-color: #550000;" onclick="switchTab('past-tab', document.querySelectorAll('.sidebar-link')[4])">
+                        View Past Sessions
+                    </button>
+                </div>
+
+                <div class="card-square">
+                    <button class="card-button" style="background-color: #550000;" onclick="switchTab('schedule-tab', document.querySelectorAll('.sidebar-link')[1])">
+                        Schedule Sessions
+                    </button>
+                </div>
+
+                <div class="card-square">
+                    <button class="card-button" style="background-color: #550000;" onclick="switchTab('settings-tab', document.querySelectorAll('.sidebar-link')[7])">
+                        Settings
+                    </button>
                 </div>
             </div>
         </div>
 
-        <div id="sessions-tab" class="tab-content">
+        <div id="schedule-tab" class="tab-content">
+            <div class="card-outlined" style="max-width: 700px; margin: 0 auto;">
+                
+                <div id="schedule-step-1">
+                    <h3>Step 1: Select Subject</h3>
+                    <p id="step-1-label" style="text-align: center; font-weight: 500;">
+                        <%= user.role === 'tutor' ? 'What course are you helping out in?' : 'What course do you need help in?' %>
+                    </p>
+                    
+                    <div style="display: flex; gap: 15px; justify-content: center; margin-top: 20px;">
+                        <select id="courseSelect" style="padding: 10px; font-size: 16px; border-radius: 6px; border: 1px solid #cbd5e1; width: 60%;">
+                            <option value="Algebra">Algebra</option>
+                            <option value="Algebra H">Algebra H</option>
+                            <option value="Advanced Algebra">Advanced Algebra</option>
+                            <option value="Precalculus">Precalculus</option>
+                            <option value="AP Precalculus">AP Precalculus</option>
+                            <option value="AP Calculus AB">AP Calculus AB</option>
+                            <option value="AP Calculus BC">AP Calculus BC</option>
+                            <option value="AP Statistics">AP Statistics</option>
+                            <option value="AMDM">AMDM</option>
+                        </select>
+                        <button class="btn-dark-red" onclick="goToStep2()" style="flex: 0 0 auto; padding: 10px 20px;">Next &rarr;</button>
+                    </div>
+                </div>
+
+                <div id="schedule-step-2" style="display: none;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                        <button onclick="goToStep1()" style="background: none; border: none; color: #0080ff; cursor: pointer; font-weight: bold;">&larr; Back to Step 1</button>
+                        <h3 style="margin: 0;">Step 2: Select <%= user.role === 'tutor' ? 'Tutee' : 'Tutor' %></h3>
+                        <div></div>
+                    </div>
+
+                    <p style="text-align: center; color: #64748b;">
+                        Showing matches for <strong id="selected-course-tag"></strong>:
+                    </p>
+
+                    <div id="peer-board" style="display: flex; flex-direction: column; gap: 12px; margin-top: 20px;"></div>
+                </div>
+
+                <div id="schedule-step-3" style="display: none;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                        <button onclick="goToStep2()" style="background: none; border: none; color: #0080ff; cursor: pointer; font-weight: bold;">&larr; Back to Step 2</button>
+                        <h3 style="margin: 0;">Step 3: Propose Preferences</h3>
+                        <div></div>
+                    </div>
+
+                    <p style="text-align: center; color: #64748b;">
+                        Proposing session with <strong id="selected-peer-name"></strong> for <strong id="selected-peer-course"></strong>
+                    </p>
+
+                    <form id="proposeSessionForm" onsubmit="submitProposedSession(event)" style="margin-top: 20px;">
+                        <div class="form-group">
+                            <label>Option 1 (Required):</label>
+                            <input type="datetime-local" id="timeOption1" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Option 2 (Optional):</label>
+                            <input type="datetime-local" id="timeOption2">
+                        </div>
+                        <div class="form-group">
+                            <label>Option 3 (Optional):</label>
+                            <input type="datetime-local" id="timeOption3">
+                        </div>
+                        <div class="form-group">
+                            <label>Preferred Location / Note:</label>
+                            <input type="text" id="sessionLocation" placeholder="e.g., Media Center / Room 214" required>
+                        </div>
+
+                        <div style="text-align: right; margin-top: 20px;">
+                            <button type="submit" class="btn-dark-red" style="padding: 10px 25px;">Propose Session</button>
+                        </div>
+                    </form>
+                </div>
+
+            </div>
+        </div>
+
+        <div id="proposed-tab" class="tab-content">
             <div class="card-outlined">
-                <h3>All Scheduled Sessions</h3>
+                <h3>Proposed Sessions</h3>
+                <div id="proposed-sessions-list">
+                    <p style="color: #64748b;">No proposed sessions at this time.</p>
+                </div>
+            </div>
+        </div>
+
+        <div id="upcoming-tab" class="tab-content">
+            <div class="card-outlined">
+                <h3>Upcoming Sessions</h3>
                 <ul>
                     <% if (sessions.length === 0) { %>
-                        <li>No recorded sessions.</li>
+                        <li>No upcoming sessions scheduled.</li>
                     <% } else { %>
                         <% sessions.forEach(s => { %>
-                            <li><strong><%= s.title %></strong> with <%= s.peer_name %> at <%= s.location %> (<%= s.datetime %>)</li>
+                            <li><strong><%= s.title || s.subject %></strong> with <%= s.peer_name %> at <%= s.location %> (<%= s.scheduled_time || s.datetime %>)</li>
                         <% }) %>
                     <% } %>
                 </ul>
+            </div>
+        </div>
+
+        <div id="past-tab" class="tab-content">
+            <div class="card-outlined">
+                <h3>Past Sessions</h3>
+                <p style="color: #64748b;">No past session history available.</p>
             </div>
         </div>
 
@@ -335,6 +408,13 @@
             </div>
         </div>
 
+        <div id="competitions-tab" class="tab-content">
+            <div class="card-outlined">
+                <h3>Competitions</h3>
+                <p style="color: #64748b;">No upcoming competitions posted yet.</p>
+            </div>
+        </div>
+
         <div id="settings-tab" class="tab-content">
             <div class="card-outlined">
                 <h3>Profile Settings</h3>
@@ -345,65 +425,224 @@
         </div>
     </div>
 
-    <dialog id="sessionModal">
-        <h3 style="margin-top: 0;">Log Tutoring Session</h3>
-        <form id="createSessionForm">
-            <div class="form-group">
-                <label>Topic / Title</label>
-                <input type="text" id="title" required placeholder="e.g., AP Calc BC Prep">
-            </div>
-            <div class="form-group">
-                <label>Tutee Name</label>
-                <input type="text" id="peer_name" required placeholder="e.g., Brian Houston">
-            </div>
-            <div class="form-group">
-                <label>Date & Time</label>
-                <input type="text" id="datetime" required placeholder="e.g., Today, 3:30 PM">
-            </div>
-            <div class="form-group">
-                <label>Location</label>
-                <input type="text" id="location" required placeholder="e.g., Room 214">
-            </div>
-            <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 15px;">
-                <button type="button" class="btn-dark-red" style="background: #cbd5e1; color: #333;" onclick="document.getElementById('sessionModal').close()">Cancel</button>
-                <button type="submit" class="btn-dark-red">Save Session</button>
-            </div>
-        </form>
-    </dialog>
-
     <script>
+        let selectedSubject = '';
+        let selectedPeer = null;
+
         function switchTab(tabId, element) {
             document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
             document.querySelectorAll('.sidebar-link').forEach(link => link.classList.remove('active'));
             
-            document.getElementById(tabId).classList.add('active');
+            const targetTab = document.getElementById(tabId);
+            if (targetTab) targetTab.classList.add('active');
             if (element) element.classList.add('active');
         }
 
-        document.getElementById('createSessionForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
+        function goToStep1() {
+            document.getElementById('schedule-step-1').style.display = 'block';
+            document.getElementById('schedule-step-2').style.display = 'none';
+            document.getElementById('schedule-step-3').style.display = 'none';
+        }
+
+        async function goToStep2() {
+            selectedSubject = document.getElementById('courseSelect').value;
+            if (!selectedSubject) {
+                alert('Please select a course first!');
+                return;
+            }
+
+            document.getElementById('selected-course-tag').innerText = selectedSubject;
+            document.getElementById('schedule-step-1').style.display = 'none';
+            document.getElementById('schedule-step-2').style.display = 'block';
+            document.getElementById('schedule-step-3').style.display = 'none';
+
+            const userRole = "<%= user.role %>";
+            let peerRole = (userRole === "tutor") ? "tutee" : "tutor";
+
+            try {
+                const response = await fetch(`/available-peers?subject=${encodeURIComponent(selectedSubject)}&role=${peerRole}`);
+                
+                if (!response.ok) {
+                    console.error(`Server returned status ${response.status}`);
+                    alert(`Error fetching peers: Server returned ${response.status}`);
+                    return;
+                }
+
+                const peers = await response.json();
+                const board = document.getElementById('peer-board');
+                board.innerHTML = '';
+
+                if (!peers || peers.length === 0) {
+                    board.innerHTML = `<p style="text-align: center; color: #94a3b8; padding: 20px;">No available ${peerRole}s found for ${selectedSubject}.</p>`;
+                    return;
+                }
+
+                peers.forEach(peer => {
+                    const card = document.createElement('div');
+                    card.style.cssText = 'display: flex; justify-content: space-between; align-items: center; padding: 15px; border: 1px solid #e2e8f0; border-radius: 8px; background: #f8fafc;';
+                    
+                    card.innerHTML = `
+                        <div>
+                            <strong style="font-size: 16px; color: #0f172a;">${peer.username}</strong>
+                            <span style="font-size: 13px; color: #64748b; margin-left: 8px;">(Grade ${peer.grade || 'N/A'})</span>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 15px;">
+                            <span style="background: #e2e8f0; padding: 4px 10px; border-radius: 12px; font-size: 13px; font-weight: 600; color: #334155;">
+                                ${peer.subject}
+                            </span>
+                            <button class="btn-dark-red" onclick="goToStep3('${peer.id}', '${peer.username}')">
+                                Select Peer &rarr;
+                            </button>
+                        </div>
+                    `;
+                    board.appendChild(card);
+                });
+            } catch (err) {
+                console.error('Fetch error:', err);
+                alert('Failed to connect to the server.');
+            }
+        }
+
+        function goToStep3(peerId, peerUsername) {
+            selectedPeer = { id: peerId, username: peerUsername };
+            document.getElementById('selected-peer-name').innerText = peerUsername;
+            document.getElementById('selected-peer-course').innerText = selectedSubject;
+
+            document.getElementById('schedule-step-1').style.display = 'none';
+            document.getElementById('schedule-step-2').style.display = 'none';
+            document.getElementById('schedule-step-3').style.display = 'block';
+        }
+
+        async function submitProposedSession(event) {
+            event.preventDefault();
+
+            const opt1 = document.getElementById('timeOption1').value;
+            const opt2 = document.getElementById('timeOption2').value;
+            const opt3 = document.getElementById('timeOption3').value;
+            const location = document.getElementById('sessionLocation').value;
+
+            const timeOptions = [opt1, opt2, opt3].filter(Boolean);
 
             const urlParams = new URLSearchParams(window.location.search);
-            const userId = urlParams.get('id');
+            const userId = "<%= user.id %>";
+            const userRole = "<%= user.role %>";
 
             const payload = {
-                title: document.getElementById('title').value,
-                peer_name: document.getElementById('peer_name').value,
-                datetime: document.getElementById('datetime').value,
-                location: document.getElementById('location').value,
-                userId: userId
+                requesterId: userId,
+                targetId: selectedPeer.id,
+                requesterRole: userRole,
+                subject: selectedSubject,
+                location: location,
+                proposedTimes: timeOptions
             };
 
-            const response = await fetch('/api/sessions', {
+            try {
+                const response = await fetch('/api/schedule-session', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                if (response.ok) {
+                    alert('Session proposed successfully!');
+                    goToStep1();
+                    switchTab('proposed-tab', document.querySelectorAll('.sidebar-link')[2]);
+                    loadProposedSessions();
+                } else {
+                    alert('Failed to propose session. Please try again.');
+                }
+            } catch (err) {
+                console.error('Submission error:', err);
+                alert('An error occurred while proposing the session.');
+            }
+        }
+
+        async function loadProposedSessions() {
+            try {
+                const urlParams = new URLSearchParams(window.location.search);
+                const userId = urlParams.get('id');
+
+                const response = await fetch(`/api/proposed-sessions?userId=${userId}`);
+                if (!response.ok) return;
+
+                const proposals = await response.json();
+                const container = document.getElementById('proposed-sessions-list');
+
+                if (!proposals || proposals.length === 0) {
+                    container.innerHTML = `<p style="color: #64748b;">No proposed sessions at this time.</p>`;
+                    return;
+                }
+
+                const userRole = "<%= user.role %>";
+
+                container.innerHTML = proposals.map(prop => {
+                    const peerName = (userRole === 'tutor') ? prop.tutee?.username : prop.tutor?.username;
+
+                    return `
+                        <div class="proposed-card">
+                            <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                                <div>
+                                    <h4 style="margin: 0 0 5px 0;">${prop.subject} Session</h4>
+                                    <p style="margin: 0; font-size: 14px; color: #475569;">
+                                        <strong>With:</strong> ${peerName || 'Peer'} | <strong>Location:</strong> ${prop.location}
+                                    </p>
+                                </div>
+                                <div>
+                                    <button class="btn-green" onclick="acceptProposal('${prop.id}')">Accept Option</button>
+                                    <button class="btn-red-outline" onclick="rejectProposal('${prop.id}')">Reject</button>
+                                </div>
+                            </div>
+                            <div style="margin-top: 12px;">
+                                <span style="font-size: 13px; font-weight: 600;">Proposed Options (Select One):</span><br>
+                                ${(prop.proposed_times || []).map((time, idx) => `
+                                    <div class="option-chip ${idx === 0 ? 'selected' : ''}" onclick="selectOptionChip(this)" data-time="${time}">
+                                        ${new Date(time).toLocaleString([], { dateStyle: 'short', timeStyle: 'short' })}
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            } catch (err) {
+                console.error('Error loading proposals:', err);
+            }
+        }
+
+        function selectOptionChip(chip) {
+            const parent = chip.parentElement;
+            parent.querySelectorAll('.option-chip').forEach(c => c.classList.remove('selected'));
+            chip.classList.add('selected');
+        }
+
+        async function acceptProposal(proposalId) {
+            const card = event.target.closest('.proposed-card');
+            const selectedChip = card.querySelector('.option-chip.selected');
+            const selectedTime = selectedChip ? selectedChip.getAttribute('data-time') : null;
+
+            const response = await fetch('/api/sessions/accept', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
+                body: JSON.stringify({ proposalId, selectedTime })
             });
 
             if (response.ok) {
+                alert('Proposal accepted!');
                 window.location.reload();
             }
-        });
+        }
+
+        async function rejectProposal(proposalId) {
+            const response = await fetch('/api/sessions/reject', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ proposalId })
+            });
+
+            if (response.ok) {
+                alert('Proposal rejected.');
+                window.location.reload();
+            }
+        }
     </script>
 </body>
 </html>

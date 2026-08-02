@@ -146,6 +146,7 @@ app.get('/dashboard', async (req, res) => {
         return res.redirect('/');
     }
 
+    // 1. Fetch current logged-in user
     const { data: user, error: userError } = await supabase
         .from('users')
         .select('*')
@@ -163,6 +164,7 @@ app.get('/dashboard', async (req, res) => {
         return res.status(403).send('Your account access has been restricted.');
     }
 
+    // 2. Fetch User's Sessions
     let sessions = [];
     const { data: sessionData, error: sessionError } = await supabase
         .from('sessions')
@@ -173,14 +175,124 @@ app.get('/dashboard', async (req, res) => {
         sessions = sessionData;
     }
 
+    // 3. Fetch Tutors list
+    let tutors = [];
+    const { data: tutorData } = await supabase
+        .from('users')
+        .select('id, username, subject, grade')
+        .eq('role', 'tutor')
+        .eq('status', 'active');
+
+    if (tutorData) tutors = tutorData;
+
+    // 4. Fetch Tutees list
+    let tutees = [];
+    const { data: tuteeData } = await supabase
+        .from('users')
+        .select('id, username, subject, grade')
+        .eq('role', 'tutee')
+        .eq('status', 'active');
+
+    if (tuteeData) tutees = tuteeData;
+
+    // 5. Render dashboard
     res.render('dashboard', { 
-        user: req.user,
-        tutees: tutees || [], 
-        tutors: tutors || []
+        user: user,
+        sessions: sessions,
+        tutees: tutees,
+        tutors: tutors
     });
 });
 
-// Create Tutoring Session Endpoint
+// Dynamic Available Peers Search Endpoint
+app.get('/available-peers', async (req, res) => {
+    try {
+        const { subject, role } = req.query;
+
+        if (!subject || !role) {
+            return res.status(400).json({ error: 'Missing subject or role parameters.' });
+        }
+
+        // Fetch active peers matching role & subject
+        const { data: peers, error } = await supabase
+            .from('users')
+            .select('id, username, subject, grade, role')
+            .eq('status', 'active')
+            .ilike('role', role)
+            .ilike('subject', `%${subject}%`);
+
+        if (error) {
+            console.error('Supabase query error:', error.message);
+            return res.status(500).json({ error: error.message });
+        }
+
+        res.json(peers || []);
+    } catch (err) {
+        console.error('Server error fetching peers:', err.message);
+        res.status(500).json({ error: 'Failed to retrieve available peers' });
+    }
+});
+
+// Schedule Session Endpoint (Updated to match dashboard fetch path)
+app.post('/api/schedule-session', async (req, res) => {
+    const { requesterId, targetId, requesterRole, subject, location, proposedTimes } = req.body;
+
+    if (!requesterId || !targetId) {
+        return res.status(400).json({ error: "Missing user IDs." });
+    }
+
+    // Assign tutor vs tutee based on role
+    const tutorId = (requesterRole === 'tutor') ? requesterId : targetId;
+    const tuteeId = (requesterRole === 'tutee') ? requesterId : targetId;
+
+    const { error } = await supabaseAdmin
+        .from('sessions')
+        .insert([{ 
+            tutor_id: tutorId,
+            tutee_id: tuteeId,
+            subject: subject,
+            location: location || 'TBD',
+            status: 'proposed',
+            proposed_times: proposedTimes || []
+        }]);
+
+    if (error) {
+        // Look at your terminal console to see the exact database error!
+        console.error("Error scheduling session:", error.message);
+        return res.status(500).json({ error: error.message });
+    }
+
+    res.status(200).json({ success: true });
+});
+app.get('/api/proposed-sessions', async (req, res) => {
+    const userId = req.query.userId;
+
+    if (!userId) {
+        return res.status(400).json({ error: 'User ID is required' });
+    }
+
+    const { data: proposals, error } = await supabase
+        .from('sessions')
+        .select(`
+            id,
+            subject,
+            location,
+            status,
+            proposed_times,
+            tutor:users!sessions_tutor_id_fkey(username),
+            tutee:users!sessions_tutee_id_fkey(username)
+        `)
+        .eq('status', 'proposed')
+        .or(`tutor_id.eq.${userId},tutee_id.eq.${userId}`);
+
+    if (error) {
+        console.error("Error fetching proposals:", error.message);
+        return res.status(500).json({ error: "Failed to load proposed sessions" });
+    }
+
+    res.json(proposals || []);
+});
+// Manual Log Session Endpoint
 app.post('/api/sessions', async (req, res) => {
     const { title, peer_name, datetime, location, userId } = req.body;
 
@@ -200,7 +312,6 @@ app.post('/api/sessions', async (req, res) => {
 // PROTECTED ADMIN ROUTES & HELPER FUNCTIONS
 // =========================================================================
 
-// Helper: Verifies whether a user is an active admin
 async function verifyIsActiveAdmin(adminId) {
     if (!adminId) return false;
 
@@ -215,7 +326,6 @@ async function verifyIsActiveAdmin(adminId) {
     return adminUser.role === 'admin' && adminUser.status === 'active';
 }
 
-// Protected Admin Dashboard Route
 app.get('/admin', async (req, res) => {
     const adminId = req.query.id;
 
@@ -237,7 +347,6 @@ app.get('/admin', async (req, res) => {
     res.render('admin', { users });
 });
 
-// Update User Status (Approve / Reject)
 app.post('/api/users/update-status', async (req, res) => {
     const { userId, status, adminId } = req.body;
 
@@ -263,7 +372,6 @@ app.post('/api/users/update-status', async (req, res) => {
     res.json({ success: true, message: `User status updated to ${status}` });
 });
 
-// Protected API Endpoint to Delete User (Auth & DB)
 app.post('/api/users/delete', async (req, res) => {
     const { userId, adminId } = req.body;
 
@@ -294,12 +402,10 @@ app.post('/api/users/delete', async (req, res) => {
     }
 });
 
-// Logout Route
 app.get('/logout', (req, res) => {
     res.redirect('/');
 });
 
-// Start Server
 if (process.env.NODE_ENV !== 'production') {
     app.listen(PORT, () => console.log(`Server running at http://localhost:${PORT}`));
 }
