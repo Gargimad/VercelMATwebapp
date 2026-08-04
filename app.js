@@ -169,7 +169,7 @@ app.get('/dashboard', async (req, res) => {
     const { data: sessionData, error: sessionError } = await supabase
         .from('sessions')
         .select('*')
-        .eq('user_id', userId);
+        .or(`tutor_id.eq.${userId},tutee_id.eq.${userId}`);
 
     if (!sessionError && sessionData) {
         sessions = sessionData;
@@ -233,7 +233,7 @@ app.get('/available-peers', async (req, res) => {
     }
 });
 
-// Schedule Session Endpoint (Updated to match dashboard fetch path)
+// Propose / Schedule Session Endpoint
 app.post('/api/schedule-session', async (req, res) => {
     const { requesterId, targetId, requesterRole, subject, location, proposedTimes } = req.body;
 
@@ -250,6 +250,7 @@ app.post('/api/schedule-session', async (req, res) => {
         .insert([{ 
             tutor_id: tutorId,
             tutee_id: tuteeId,
+            requester_id: requesterId, // <--- Stored requester ID
             subject: subject,
             location: location || 'TBD',
             status: 'proposed',
@@ -257,41 +258,104 @@ app.post('/api/schedule-session', async (req, res) => {
         }]);
 
     if (error) {
-        // Look at your terminal console to see the exact database error!
         console.error("Error scheduling session:", error.message);
         return res.status(500).json({ error: error.message });
     }
 
     res.status(200).json({ success: true });
 });
+
+// Fetch Proposed Sessions Endpoint
 app.get('/api/proposed-sessions', async (req, res) => {
+    const { userId } = req.query;
+    const { data, error } = await supabase
+        .from('sessions')
+        .select(`
+            *,
+            tutor:tutor_id (username),
+            tutee:tutee_id (username)
+        `)
+        .or(`tutor_id.eq.${userId},tutee_id.eq.${userId}`)
+        .eq('status', 'proposed');
+
+    if (error) return res.status(500).json({ error: error.message });
+    res.json(data);
+});
+
+// Accept Proposed Session Endpoint (Direct Recipient Acceptance)
+app.post('/api/sessions/accept', async (req, res) => {
+    const { proposalId, selectedTime } = req.body;
+
+    if (!proposalId || !selectedTime) {
+        return res.status(400).json({ error: 'Missing proposal ID or selected time slot.' });
+    }
+
+    const { error } = await supabaseAdmin
+        .from('sessions')
+        .update({ 
+            status: 'accepted',
+            scheduled_time: selectedTime
+        })
+        .eq('id', proposalId);
+
+    if (error) {
+        console.error('Error accepting session:', error.message);
+        return res.status(500).json({ error: 'Failed to accept session.' });
+    }
+
+    res.json({ success: true });
+});
+
+// Reject Proposed Session Endpoint
+app.post('/api/sessions/reject', async (req, res) => {
+    const { proposalId } = req.body;
+
+    if (!proposalId) {
+        return res.status(400).json({ error: 'Missing proposal ID.' });
+    }
+
+    const { error } = await supabaseAdmin
+        .from('sessions')
+        .update({ status: 'rejected' })
+        .eq('id', proposalId);
+
+    if (error) {
+        console.error('Error rejecting session:', error.message);
+        return res.status(500).json({ error: 'Failed to reject session.' });
+    }
+
+    res.json({ success: true });
+});
+
+// Fetch Upcoming Accepted Sessions Endpoint
+app.get('/api/upcoming-sessions', async (req, res) => {
     const userId = req.query.userId;
 
     if (!userId) {
-        return res.status(400).json({ error: 'User ID is required' });
+        return res.status(400).json({ error: 'User ID is required.' });
     }
 
-    const { data: proposals, error } = await supabase
+    const { data: upcoming, error } = await supabase
         .from('sessions')
         .select(`
             id,
             subject,
             location,
-            status,
-            proposed_times,
+            scheduled_time,
             tutor:users!sessions_tutor_id_fkey(username),
             tutee:users!sessions_tutee_id_fkey(username)
         `)
-        .eq('status', 'proposed')
+        .eq('status', 'accepted')
         .or(`tutor_id.eq.${userId},tutee_id.eq.${userId}`);
 
     if (error) {
-        console.error("Error fetching proposals:", error.message);
-        return res.status(500).json({ error: "Failed to load proposed sessions" });
+        console.error('Error fetching upcoming sessions:', error.message);
+        return res.status(500).json({ error: 'Failed to fetch upcoming sessions.' });
     }
 
-    res.json(proposals || []);
+    res.json(upcoming || []);
 });
+
 // Manual Log Session Endpoint
 app.post('/api/sessions', async (req, res) => {
     const { title, peer_name, datetime, location, userId } = req.body;

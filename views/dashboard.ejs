@@ -152,15 +152,6 @@
             min-height: 180px;
         }
 
-        dialog {
-            border: none;
-            border-radius: 8px;
-            padding: 20px;
-            width: 90%;
-            max-width: 400px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.2);
-        }
-        dialog::backdrop { background: rgba(0, 0, 0, 0.5); }
         .form-group { margin-bottom: 15px; }
         .form-group label { display: block; margin-bottom: 5px; font-size: 14px; font-weight: 600; }
         .form-group input { width: 100%; padding: 8px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 4px; }
@@ -232,7 +223,7 @@
             <li class="sidebar-item"><a class="sidebar-link active" onclick="switchTab('dashboard-tab', this)">Dashboard</a></li>
             <li class="sidebar-item"><a class="sidebar-link" onclick="switchTab('schedule-tab', this)">Schedule Session</a></li>
             <li class="sidebar-item"><a class="sidebar-link" onclick="switchTab('proposed-tab', this); loadProposedSessions();">Proposed Sessions</a></li>
-            <li class="sidebar-item"><a class="sidebar-link" onclick="switchTab('upcoming-tab', this)">Upcoming Sessions</a></li>
+            <li class="sidebar-item"><a class="sidebar-link" onclick="switchTab('upcoming-tab', this); loadUpcomingSessions();">Upcoming Sessions</a></li>
             <li class="sidebar-item"><a class="sidebar-link" onclick="switchTab('past-tab', this)">Past Sessions</a></li>
             <li class="sidebar-item"><a class="sidebar-link" onclick="switchTab('resources-tab', this)">Resources</a></li>
             <li class="sidebar-item"><a class="sidebar-link" onclick="switchTab('competitions-tab', this)">Competitions</a></li>
@@ -264,7 +255,7 @@
                 </div>
 
                 <div class="card-square">
-                    <button class="card-button" style="background-color: #550000;" onclick="switchTab('upcoming-tab', document.querySelectorAll('.sidebar-link')[3])">
+                    <button class="card-button" style="background-color: #550000;" onclick="switchTab('upcoming-tab', document.querySelectorAll('.sidebar-link')[3]); loadUpcomingSessions();">
                         View upcoming sessions
                     </button>
                 </div>
@@ -378,15 +369,9 @@
         <div id="upcoming-tab" class="tab-content">
             <div class="card-outlined">
                 <h3>Upcoming Sessions</h3>
-                <ul>
-                    <% if (sessions.length === 0) { %>
-                        <li>No upcoming sessions scheduled.</li>
-                    <% } else { %>
-                        <% sessions.forEach(s => { %>
-                            <li><strong><%= s.title || s.subject %></strong> with <%= s.peer_name %> at <%= s.location %> (<%= s.scheduled_time || s.datetime %>)</li>
-                        <% }) %>
-                    <% } %>
-                </ul>
+                <div id="upcoming-sessions-list">
+                    <p style="color: #64748b;">No upcoming sessions scheduled.</p>
+                </div>
             </div>
         </div>
 
@@ -426,6 +411,9 @@
     </div>
 
     <script>
+        const CURRENT_USER_ID = "<%= user.id %>";
+        const CURRENT_USER_ROLE = "<%= user.role %>";
+
         let selectedSubject = '';
         let selectedPeer = null;
 
@@ -456,17 +444,11 @@
             document.getElementById('schedule-step-2').style.display = 'block';
             document.getElementById('schedule-step-3').style.display = 'none';
 
-            const userRole = "<%= user.role %>";
-            let peerRole = (userRole === "tutor") ? "tutee" : "tutor";
+            let peerRole = (CURRENT_USER_ROLE === "tutor") ? "tutee" : "tutor";
 
             try {
                 const response = await fetch(`/available-peers?subject=${encodeURIComponent(selectedSubject)}&role=${peerRole}`);
-                
-                if (!response.ok) {
-                    console.error(`Server returned status ${response.status}`);
-                    alert(`Error fetching peers: Server returned ${response.status}`);
-                    return;
-                }
+                if (!response.ok) return alert(`Error fetching peers: ${response.status}`);
 
                 const peers = await response.json();
                 const board = document.getElementById('peer-board');
@@ -523,14 +505,10 @@
 
             const timeOptions = [opt1, opt2, opt3].filter(Boolean);
 
-            const urlParams = new URLSearchParams(window.location.search);
-            const userId = "<%= user.id %>";
-            const userRole = "<%= user.role %>";
-
             const payload = {
-                requesterId: userId,
-                targetId: selectedPeer.id,
-                requesterRole: userRole,
+                requesterId: CURRENT_USER_ID,
+                targetId: selectedPeer ? selectedPeer.id : null,
+                requesterRole: CURRENT_USER_ROLE,
                 subject: selectedSubject,
                 location: location,
                 proposedTimes: timeOptions
@@ -543,26 +521,31 @@
                     body: JSON.stringify(payload)
                 });
 
+                const result = await response.json().catch(() => ({}));
+
                 if (response.ok) {
                     alert('Session proposed successfully!');
                     goToStep1();
-                    switchTab('proposed-tab', document.querySelectorAll('.sidebar-link')[2]);
+                    
+                    const proposedLink = Array.from(document.querySelectorAll('.sidebar-link'))
+                        .find(el => el.textContent.includes('Proposed Sessions'));
+
+                    switchTab('proposed-tab', proposedLink);
                     loadProposedSessions();
-                } else {
-                    alert('Failed to propose session. Please try again.');
+                }
+                else {
+                    console.error('Server error details:', result);
+                    alert(`Failed to propose session: ${result.error || result.message || response.statusText}`);
                 }
             } catch (err) {
-                console.error('Submission error:', err);
-                alert('An error occurred while proposing the session.');
+                console.error('Submission network error:', err);
+                alert('An error occurred while connecting to the server.');
             }
         }
 
         async function loadProposedSessions() {
             try {
-                const urlParams = new URLSearchParams(window.location.search);
-                const userId = urlParams.get('id');
-
-                const response = await fetch(`/api/proposed-sessions?userId=${userId}`);
+                const response = await fetch(`/api/proposed-sessions?userId=${CURRENT_USER_ID}`);
                 if (!response.ok) return;
 
                 const proposals = await response.json();
@@ -573,27 +556,37 @@
                     return;
                 }
 
-                const userRole = "<%= user.role %>";
-
                 container.innerHTML = proposals.map(prop => {
-                    const peerName = (userRole === 'tutor') ? prop.tutee?.username : prop.tutor?.username;
+                    const peerName = (CURRENT_USER_ROLE === 'tutor') 
+                        ? (prop.tutee?.username || 'Tutee') 
+                        : (prop.tutor?.username || 'Tutor');
+                    
+                    // Directly check if current user is the requester via requester_id
+                    const isRequester = String(prop.requester_id) === String(CURRENT_USER_ID);
 
                     return `
-                        <div class="proposed-card">
+                        <div class="proposed-card" id="proposal-${prop.id}">
                             <div style="display: flex; justify-content: space-between; align-items: flex-start;">
                                 <div>
                                     <h4 style="margin: 0 0 5px 0;">${prop.subject} Session</h4>
                                     <p style="margin: 0; font-size: 14px; color: #475569;">
-                                        <strong>With:</strong> ${peerName || 'Peer'} | <strong>Location:</strong> ${prop.location}
+                                        <strong>With:</strong> ${peerName} | <strong>Location:</strong> ${prop.location}
                                     </p>
                                 </div>
                                 <div>
-                                    <button class="btn-green" onclick="acceptProposal('${prop.id}')">Accept Option</button>
-                                    <button class="btn-red-outline" onclick="rejectProposal('${prop.id}')">Reject</button>
+                                    ${isRequester ? `
+                                        <span style="font-size: 12px; font-weight: 600; color: #d97706; background: #fef3c7; padding: 4px 10px; border-radius: 12px;">
+                                            Pending peer response...
+                                        </span>
+                                    ` : `
+                                        <button class="btn-green" onclick="acceptProposal('${prop.id}', event)">Accept Selected Slot</button>
+                                        <button class="btn-red-outline" onclick="rejectProposal('${prop.id}')">Reject</button>
+                                    `}
                                 </div>
                             </div>
+                            
                             <div style="margin-top: 12px;">
-                                <span style="font-size: 13px; font-weight: 600;">Proposed Options (Select One):</span><br>
+                                <span style="font-size: 13px; font-weight: 600;">Proposed Time Options:</span><br>
                                 ${(prop.proposed_times || []).map((time, idx) => `
                                     <div class="option-chip ${idx === 0 ? 'selected' : ''}" onclick="selectOptionChip(this)" data-time="${time}">
                                         ${new Date(time).toLocaleString([], { dateStyle: 'short', timeStyle: 'short' })}
@@ -608,16 +601,53 @@
             }
         }
 
+        async function loadUpcomingSessions() {
+            try {
+                const response = await fetch(`/api/upcoming-sessions?userId=${CURRENT_USER_ID}`);
+                if (!response.ok) return;
+
+                const sessions = await response.json();
+                const container = document.getElementById('upcoming-sessions-list');
+
+                if (!sessions || sessions.length === 0) {
+                    container.innerHTML = `<p style="color: #64748b;">No upcoming sessions scheduled.</p>`;
+                    return;
+                }
+
+                container.innerHTML = `
+                    <ul style="padding-left: 20px;">
+                        ${sessions.map(s => {
+                            const peerName = (CURRENT_USER_ROLE === 'tutor') ? s.tutee?.username : s.tutor?.username;
+                            const formattedTime = new Date(s.scheduled_time).toLocaleString([], { dateStyle: 'short', timeStyle: 'short' });
+                            return `
+                                <li style="margin-bottom: 10px;">
+                                    <strong>${s.subject} Session</strong> with ${peerName || 'Peer'} at <strong>${s.location}</strong> 
+                                    <br><span style="font-size: 13px; color: #64748b;">Time: ${formattedTime}</span>
+                                </li>
+                            `;
+                        }).join('')}
+                    </ul>
+                `;
+            } catch (err) {
+                console.error('Error loading upcoming sessions:', err);
+            }
+        }
+
         function selectOptionChip(chip) {
             const parent = chip.parentElement;
             parent.querySelectorAll('.option-chip').forEach(c => c.classList.remove('selected'));
             chip.classList.add('selected');
         }
 
-        async function acceptProposal(proposalId) {
-            const card = event.target.closest('.proposed-card');
+        async function acceptProposal(proposalId, evt) {
+            const card = evt.target.closest('.proposed-card');
             const selectedChip = card.querySelector('.option-chip.selected');
             const selectedTime = selectedChip ? selectedChip.getAttribute('data-time') : null;
+
+            if (!selectedTime) {
+                alert('Please select a time slot first.');
+                return;
+            }
 
             const response = await fetch('/api/sessions/accept', {
                 method: 'POST',
@@ -627,7 +657,9 @@
 
             if (response.ok) {
                 alert('Proposal accepted!');
-                window.location.reload();
+                loadProposedSessions();
+            } else {
+                alert('Failed to accept proposal.');
             }
         }
 
@@ -640,7 +672,9 @@
 
             if (response.ok) {
                 alert('Proposal rejected.');
-                window.location.reload();
+                loadProposedSessions();
+            } else {
+                alert('Failed to reject proposal.');
             }
         }
     </script>
