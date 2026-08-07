@@ -89,7 +89,6 @@ app.get('/auth/verify', async (req, res) => {
             return res.status(403).send('Your registration request was not approved.');
         }
 
-        // Route admins to admin portal, students to dashboard
         if (profile.role === 'admin') {
             return res.redirect(`/admin?id=${user.id}`);
         } else {
@@ -108,7 +107,6 @@ app.post('/submit-onboarding', async (req, res) => {
         return res.status(400).send('Missing required onboarding fields.');
     }
 
-    // Admins are auto-approved; tutors and tutees start as 'pending'
     const accountStatus = (role === 'admin') ? 'active' : 'pending';
 
     const { error } = await supabaseAdmin
@@ -146,7 +144,6 @@ app.get('/dashboard', async (req, res) => {
         return res.redirect('/');
     }
 
-    // 1. Fetch current logged-in user
     const { data: user, error: userError } = await supabase
         .from('users')
         .select('*')
@@ -157,14 +154,12 @@ app.get('/dashboard', async (req, res) => {
         return res.redirect('/');
     }
 
-    // Block non-active users
     if (user.status === 'pending') {
         return res.redirect('/pending');
     } else if (user.status === 'rejected') {
         return res.status(403).send('Your account access has been restricted.');
     }
 
-    // 2. Fetch User's Sessions
     let sessions = [];
     const { data: sessionData, error: sessionError } = await supabase
         .from('sessions')
@@ -175,7 +170,6 @@ app.get('/dashboard', async (req, res) => {
         sessions = sessionData;
     }
 
-    // 3. Fetch Tutors list
     let tutors = [];
     const { data: tutorData } = await supabase
         .from('users')
@@ -185,7 +179,6 @@ app.get('/dashboard', async (req, res) => {
 
     if (tutorData) tutors = tutorData;
 
-    // 4. Fetch Tutees list
     let tutees = [];
     const { data: tuteeData } = await supabase
         .from('users')
@@ -195,7 +188,6 @@ app.get('/dashboard', async (req, res) => {
 
     if (tuteeData) tutees = tuteeData;
 
-    // 5. Render dashboard
     res.render('dashboard', { 
         user: user,
         sessions: sessions,
@@ -213,7 +205,6 @@ app.get('/available-peers', async (req, res) => {
             return res.status(400).json({ error: 'Missing subject or role parameters.' });
         }
 
-        // Fetch active peers matching role & subject
         const { data: peers, error } = await supabase
             .from('users')
             .select('id, username, subject, grade, role')
@@ -235,13 +226,12 @@ app.get('/available-peers', async (req, res) => {
 
 // Propose / Schedule Session Endpoint
 app.post('/api/schedule-session', async (req, res) => {
-    const { requesterId, targetId, requesterRole, subject, location, proposedTimes } = req.body;
+    const { requesterId, targetId, requesterRole, subject, durationHours, location, proposedTimes } = req.body;
 
     if (!requesterId || !targetId) {
         return res.status(400).json({ error: "Missing user IDs." });
     }
 
-    // Assign tutor vs tutee based on role
     const tutorId = (requesterRole === 'tutor') ? requesterId : targetId;
     const tuteeId = (requesterRole === 'tutee') ? requesterId : targetId;
 
@@ -250,8 +240,9 @@ app.post('/api/schedule-session', async (req, res) => {
         .insert([{ 
             tutor_id: tutorId,
             tutee_id: tuteeId,
-            requester_id: requesterId, // <--- Stored requester ID
+            requester_id: requesterId,
             subject: subject,
+            duration_hours: durationHours || 1.0,
             location: location || 'TBD',
             status: 'proposed',
             proposed_times: proposedTimes || []
@@ -282,7 +273,7 @@ app.get('/api/proposed-sessions', async (req, res) => {
     res.json(data);
 });
 
-// Accept Proposed Session Endpoint (Direct Recipient Acceptance)
+// Accept Proposed Session Endpoint
 app.post('/api/sessions/accept', async (req, res) => {
     const { proposalId, selectedTime } = req.body;
 
@@ -341,6 +332,7 @@ app.get('/api/upcoming-sessions', async (req, res) => {
             id,
             subject,
             location,
+            duration_hours,
             scheduled_time,
             tutor:users!sessions_tutor_id_fkey(username),
             tutee:users!sessions_tutee_id_fkey(username)
@@ -356,20 +348,144 @@ app.get('/api/upcoming-sessions', async (req, res) => {
     res.json(upcoming || []);
 });
 
-// Manual Log Session Endpoint
-app.post('/api/sessions', async (req, res) => {
-    const { title, peer_name, datetime, location, userId } = req.body;
+// Fetch Past Completed Sessions Endpoint (Both Tutors and Tutees)
+app.get('/api/past-sessions', async (req, res) => {
+    const userId = req.query.userId;
 
-    const { error } = await supabase
-        .from('sessions')
-        .insert([{ title, peer_name, datetime, location, user_id: userId }]);
-
-    if (error) {
-        console.error("Error creating session:", error.message);
-        return res.status(500).json({ error: "Failed to create session" });
+    if (!userId) {
+        return res.status(400).json({ error: 'User ID is required.' });
     }
 
-    res.status(200).json({ success: true });
+    const { data: sessions, error } = await supabase
+        .from('sessions')
+        .select(`
+            id,
+            subject,
+            location,
+            duration_hours,
+            scheduled_time,
+            created_at,
+            tutor:users!sessions_tutor_id_fkey(username),
+            tutee:users!sessions_tutee_id_fkey(username)
+        `)
+        .eq('status', 'completed')
+        .or(`tutor_id.eq.${userId},tutee_id.eq.${userId}`);
+
+    if (error) {
+        console.error('Error fetching past sessions:', error.message);
+        return res.status(500).json({ error: 'Failed to fetch past sessions.' });
+    }
+
+    res.json(sessions || []);
+});
+
+// Fetch Volunteer Hours Endpoint (Tutors Only)
+app.get('/api/volunteer-hours', async (req, res) => {
+    const userId = req.query.userId;
+
+    if (!userId) {
+        return res.status(400).json({ error: 'User ID is required.' });
+    }
+
+    const { data: userProfile } = await supabase
+        .from('users')
+        .select('role')
+        .eq('id', userId)
+        .single();
+
+    if (!userProfile || userProfile.role !== 'tutor') {
+        return res.status(403).json({ error: 'Volunteer hours page is reserved for tutors only.' });
+    }
+
+    const { data: completedSessions, error } = await supabase
+        .from('sessions')
+        .select(`
+            id,
+            subject,
+            duration_hours,
+            scheduled_time,
+            created_at,
+            tutee:users!sessions_tutee_id_fkey(username)
+        `)
+        .eq('tutor_id', userId)
+        .eq('status', 'completed');
+
+    if (error) {
+        console.error('Error fetching volunteer hours:', error.message);
+        return res.status(500).json({ error: 'Failed to compute volunteer hours.' });
+    }
+
+    const totalHours = (completedSessions || []).reduce((sum, s) => {
+        return sum + (parseFloat(s.duration_hours) || 1.0);
+    }, 0);
+
+    res.json({
+        totalHours: totalHours.toFixed(1),
+        sessions: completedSessions || []
+    });
+});
+
+// Complete Session Endpoint
+app.post('/api/sessions/complete', async (req, res) => {
+    const { sessionId } = req.body;
+
+    if (!sessionId) {
+        return res.status(400).json({ error: 'Session ID is required.' });
+    }
+
+    const { error } = await supabaseAdmin
+        .from('sessions')
+        .update({ status: 'completed' })
+        .eq('id', sessionId);
+
+    if (error) {
+        console.error('Error completing session:', error.message);
+        return res.status(500).json({ error: 'Failed to complete session.' });
+    }
+
+    res.json({ success: true });
+});
+
+// Cancel Session Endpoint
+app.post('/api/sessions/cancel', async (req, res) => {
+    const { sessionId } = req.body;
+
+    if (!sessionId) {
+        return res.status(400).json({ error: 'Session ID is required.' });
+    }
+
+    const { error } = await supabaseAdmin
+        .from('sessions')
+        .update({ status: 'canceled' })
+        .eq('id', sessionId);
+
+    if (error) {
+        console.error('Error canceling session:', error.message);
+        return res.status(500).json({ error: 'Failed to cancel session.' });
+    }
+
+    res.json({ success: true });
+});
+
+// Reschedule Session Endpoint
+app.post('/api/sessions/reschedule', async (req, res) => {
+    const { sessionId, newTime } = req.body;
+
+    if (!sessionId || !newTime) {
+        return res.status(400).json({ error: 'Session ID and new time are required.' });
+    }
+
+    const { error } = await supabaseAdmin
+        .from('sessions')
+        .update({ scheduled_time: newTime })
+        .eq('id', sessionId);
+
+    if (error) {
+        console.error('Error rescheduling session:', error.message);
+        return res.status(500).json({ error: 'Failed to reschedule session.' });
+    }
+
+    res.json({ success: true });
 });
 
 // =========================================================================
