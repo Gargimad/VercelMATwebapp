@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard - JCHS Mu Alpha Theta</title>
+    <link rel="stylesheet" href="/css/dashboard.css">
     <style>
         body {
             margin: 0;
@@ -13,10 +14,16 @@
             color: #1e293b;
             display: flex;
             min-height: 100vh;
+            overflow-x: hidden;
         }
 
+        /* RESIZABLE & TOGGLEABLE SIDEBAR */
         .sidebar {
             width: 240px;
+            min-width: 180px;
+            max-width: 400px;
+            resize: horizontal;
+            overflow: auto;
             background-color: #1b263b;
             color: white;
             display: flex;
@@ -24,23 +31,54 @@
             padding: 20px 0;
             box-sizing: border-box;
             flex-shrink: 0;
+            transition: transform 0.3s ease;
+            z-index: 1000;
         }
+
+        .sidebar.collapsed {
+            transform: translateX(-100%);
+            position: absolute;
+            height: 100%;
+        }
+
+        .sidebar-header-wrapper {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 20px 25px 20px;
+        }
+
         .sidebar-brand {
             font-size: 18px;
             font-weight: bold;
-            padding: 0 20px 25px 20px;
             color: #ffffff;
         }
+
+        .close-sidebar-btn {
+            background: none;
+            border: none;
+            color: #94a3b8;
+            font-size: 20px;
+            cursor: pointer;
+            display: none;
+        }
+
+        .close-sidebar-btn:hover {
+            color: #ffffff;
+        }
+
         .sidebar-menu {
             list-style: none;
             padding: 0;
             margin: 0;
             flex-grow: 1;
         }
+
         .sidebar-item {
             margin-bottom: 5px;
             padding: 0 10px;
         }
+
         .sidebar-link {
             display: block;
             padding: 10px 15px;
@@ -51,10 +89,12 @@
             cursor: pointer;
             transition: all 0.2s;
         }
+
         .sidebar-link:hover, .sidebar-link.active {
             background-color: #334155;
             color: #ffffff;
         }
+
         .sidebar-footer {
             border-top: 1px solid #334155;
             padding: 15px 20px 0 20px;
@@ -67,16 +107,38 @@
             display: flex;
             flex-direction: column;
             overflow-y: auto;
+            width: 100%;
         }
 
+        /* NAVIGATION BAR WITH HAMBURGER BUTTON */
         .navbar {
             background-color: #0080ff;
             color: white;
             padding: 12px 30px;
             display: flex;
-            justify-content: flex-end;
+            justify-content: space-between;
             align-items: center;
         }
+
+        .hamburger-btn {
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            color: white;
+            font-size: 18px;
+            padding: 6px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 600;
+            transition: background 0.2s;
+        }
+
+        .hamburger-btn:hover {
+            background: rgba(255, 255, 255, 0.35);
+        }
+
         .user-badge {
             background-color: rgba(255, 255, 255, 0.25);
             padding: 4px 12px;
@@ -89,6 +151,7 @@
             display: none;
             padding: 30px 40px;
         }
+
         .tab-content.active {
             display: block;
         }
@@ -267,12 +330,35 @@
         table.log-table th {
             background-color: #f1f5f9;
         }
+
+        /* MOBILE RESPONSIVE STYLES */
+        @media (max-width: 768px) {
+            .sidebar {
+                position: fixed;
+                top: 0;
+                left: 0;
+                height: 100vh;
+                transform: translateX(-100%);
+            }
+            .sidebar.active {
+                transform: translateX(0);
+            }
+            .close-sidebar-btn {
+                display: block;
+            }
+            .tab-content {
+                padding: 20px;
+            }
+        }
     </style>
 </head>
 <body>
 
-    <div class="sidebar">
-        <div class="sidebar-brand">JCHS Mu Alpha Theta</div>
+    <div id="sidebar" class="sidebar">
+        <div class="sidebar-header-wrapper">
+            <div class="sidebar-brand">JCHS Mu Alpha Theta</div>
+            <button id="closeSidebarBtn" class="close-sidebar-btn" title="Close Sidebar">&times;</button>
+        </div>
         <ul class="sidebar-menu">
             <li class="sidebar-item"><a class="sidebar-link active" onclick="switchTab('dashboard-tab', this)">Dashboard</a></li>
             <li class="sidebar-item"><a class="sidebar-link" onclick="switchTab('schedule-tab', this)">Schedule Session</a></li>
@@ -298,6 +384,10 @@
 
     <div class="main-wrapper">
         <div class="navbar">
+            <button id="hamburgerBtn" class="hamburger-btn">
+                &#9776; <span>Menu</span>
+            </button>
+
             <div class="user-badge">
                 <%= user.username %> | <%= user.role.toUpperCase() %>
             </div>
@@ -515,13 +605,48 @@
         let selectedSubject = '';
         let selectedPeer = null;
 
+        /* SIDEBAR TOGGLE HANDLERS */
+        const sidebar = document.getElementById('sidebar');
+        const hamburgerBtn = document.getElementById('hamburgerBtn');
+        const closeSidebarBtn = document.getElementById('closeSidebarBtn');
+
+        hamburgerBtn.addEventListener('click', () => {
+            if (window.innerWidth <= 768) {
+                sidebar.classList.toggle('active');
+            } else {
+                sidebar.classList.toggle('collapsed');
+            }
+        });
+
+        if (closeSidebarBtn) {
+            closeSidebarBtn.addEventListener('click', () => {
+                sidebar.classList.remove('active');
+                sidebar.classList.add('collapsed');
+            });
+        }
+
+        /* TAB NAVIGATION HANDLER */
         function switchTab(tabId, element) {
             document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
             document.querySelectorAll('.sidebar-link').forEach(link => link.classList.remove('active'));
             
             const targetTab = document.getElementById(tabId);
             if (targetTab) targetTab.classList.add('active');
-            if (element) element.classList.add('active');
+            
+            if (element) {
+                element.classList.add('active');
+            } else {
+                const navLinks = document.querySelectorAll('.sidebar-link');
+                navLinks.forEach(link => {
+                    if (link.getAttribute('onclick') && link.getAttribute('onclick').includes(tabId)) {
+                        link.classList.add('active');
+                    }
+                });
+            }
+
+            if (window.innerWidth <= 768) {
+                sidebar.classList.remove('active');
+            }
         }
 
         function goToStep1() {
@@ -637,6 +762,12 @@
             }
         }
 
+        function selectOptionChip(element) {
+            const parent = element.parentElement;
+            parent.querySelectorAll('.option-chip').forEach(chip => chip.classList.remove('selected'));
+            element.classList.add('selected');
+        }
+
         async function loadProposedSessions() {
             try {
                 const response = await fetch(`/api/proposed-sessions?userId=${CURRENT_USER_ID}`);
@@ -694,6 +825,52 @@
             }
         }
 
+        async function acceptProposal(proposalId, event) {
+            const card = document.getElementById(`proposal-${proposalId}`);
+            const selectedChip = card.querySelector('.option-chip.selected');
+            
+            if (!selectedChip) {
+                alert('Please select a time option!');
+                return;
+            }
+
+            const chosenTime = selectedChip.getAttribute('data-time');
+
+            try {
+                const response = await fetch(`/api/accept-proposal/${proposalId}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ acceptedTime: chosenTime })
+                });
+
+                if (response.ok) {
+                    alert('Session confirmed and moved to Upcoming Sessions!');
+                    loadProposedSessions();
+                    switchTab('upcoming-tab', null);
+                    loadUpcomingSessions();
+                } else {
+                    alert('Failed to accept session proposal.');
+                }
+            } catch (err) {
+                console.error('Error accepting proposal:', err);
+            }
+        }
+
+        async function rejectProposal(proposalId) {
+            if (!confirm('Are you sure you want to reject this session proposal?')) return;
+
+            try {
+                const response = await fetch(`/api/reject-proposal/${proposalId}`, { method: 'DELETE' });
+                if (response.ok) {
+                    loadProposedSessions();
+                } else {
+                    alert('Failed to reject proposal.');
+                }
+            } catch (err) {
+                console.error('Error rejecting proposal:', err);
+            }
+        }
+
         async function loadUpcomingSessions() {
             try {
                 const response = await fetch(`/api/upcoming-sessions?userId=${CURRENT_USER_ID}`);
@@ -743,160 +920,20 @@
             }
         }
 
-        async function loadPastSessions() {
-            try {
-                const response = await fetch(`/api/past-sessions?userId=${CURRENT_USER_ID}`);
-                if (!response.ok) return;
-
-                const sessions = await response.json();
-                const container = document.getElementById('past-sessions-container');
-
-                if (!sessions || sessions.length === 0) {
-                    container.innerHTML = `<p style="color: #64748b;">No completed sessions found.</p>`;
-                    return;
-                }
-
-                container.innerHTML = `
-                    <table class="log-table">
-                        <thead>
-                            <tr>
-                                <th>Date</th>
-                                <th>Subject</th>
-                                <th>${CURRENT_USER_ROLE === 'tutor' ? 'Tutee' : 'Tutor'}</th>
-                                <th>Location</th>
-                                <th>Duration</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            ${sessions.map(s => {
-                                const peerName = (CURRENT_USER_ROLE === 'tutor') 
-                                    ? (s.tutee?.username || 'N/A') 
-                                    : (s.tutor?.username || 'N/A');
-                                
-                                return `
-                                    <tr>
-                                        <td>${new Date(s.scheduled_time || s.created_at).toLocaleDateString()}</td>
-                                        <td>${s.subject}</td>
-                                        <td>${peerName}</td>
-                                        <td>${s.location || 'N/A'}</td>
-                                        <td>${s.duration_hours || 1.0} hr(s)</td>
-                                    </tr>
-                                `;
-                            }).join('')}
-                        </tbody>
-                    </table>
-                `;
-            } catch (err) {
-                console.error('Error loading past sessions:', err);
-            }
-        }
-
-        async function loadVolunteerHours() {
-            if (CURRENT_USER_ROLE !== 'tutor') return;
-
-            try {
-                const response = await fetch(`/api/volunteer-hours?userId=${CURRENT_USER_ID}`);
-                if (!response.ok) return;
-
-                const data = await response.json();
-                const container = document.getElementById('volunteer-log-container');
-                
-                document.getElementById('total-volunteer-hours').innerText = `${data.totalHours || 0.0} hrs`;
-
-                if (!data.sessions || data.sessions.length === 0) {
-                    container.innerHTML = `<p style="color: #64748b;">No completed tutoring sessions to calculate hours.</p>`;
-                    return;
-                }
-
-                container.innerHTML = `
-                    <table class="log-table">
-                        <thead>
-                            <tr>
-                                <th>Date</th>
-                                <th>Subject</th>
-                                <th>Tutee</th>
-                                <th>Logged Duration</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            ${data.sessions.map(s => `
-                                <tr>
-                                    <td>${new Date(s.scheduled_time || s.created_at).toLocaleDateString()}</td>
-                                    <td>${s.subject}</td>
-                                    <td>${s.tutee?.username || 'N/A'}</td>
-                                    <td><strong>+${s.duration_hours || 1.0} hr(s)</strong></td>
-                                </tr>
-                            `).join('')}
-                        </tbody>
-                    </table>
-                `;
-            } catch (err) {
-                console.error('Error loading volunteer hours:', err);
-            }
-        }
-
         function toggleRescheduleForm(sessionId) {
             const panel = document.getElementById(`reschedule-panel-${sessionId}`);
-            if (panel) {
-                panel.style.display = (panel.style.display === 'block') ? 'none' : 'block';
-            }
-        }
-
-        async function markCompleted(sessionId) {
-            if (!confirm('Mark this session as complete? It will move to Past Sessions and log volunteer hours (if tutor).')) return;
-
-            try {
-                const response = await fetch('/api/sessions/complete', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ sessionId, userId: CURRENT_USER_ID })
-                });
-
-                if (response.ok) {
-                    alert('Session completed!');
-                    loadUpcomingSessions();
-                } else {
-                    alert('Failed to mark session as completed.');
-                }
-            } catch (err) {
-                console.error('Error completing session:', err);
-            }
-        }
-
-        async function cancelSession(sessionId) {
-            if (!confirm('Are you sure you want to cancel this session?')) return;
-
-            try {
-                const response = await fetch('/api/sessions/cancel', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ sessionId, userId: CURRENT_USER_ID })
-                });
-
-                if (response.ok) {
-                    alert('Session canceled.');
-                    loadUpcomingSessions();
-                } else {
-                    alert('Failed to cancel session.');
-                }
-            } catch (err) {
-                console.error('Error canceling session:', err);
-            }
+            panel.style.display = (panel.style.display === 'block') ? 'none' : 'block';
         }
 
         async function submitReschedule(sessionId) {
             const newTime = document.getElementById(`reschedule-input-${sessionId}`).value;
-
-            if (!newTime) {
-                alert('Please select a new date and time.');
-                return;
-            }
+            if (!newTime) return alert('Please select a new date and time!');
 
             try {
-                const response = await fetch('/api/sessions/reschedule', {
+                const response = await fetch(`/api/reschedule-session/${sessionId}`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ sessionId, newTime, userId: CURRENT_USER_ID })
+                    body: JSON.stringify({ scheduledTime: newTime })
                 });
 
                 if (response.ok) {
@@ -910,48 +947,98 @@
             }
         }
 
-        function selectOptionChip(chip) {
-            const parent = chip.parentElement;
-            parent.querySelectorAll('.option-chip').forEach(c => c.classList.remove('selected'));
-            chip.classList.add('selected');
-        }
+        async function markCompleted(sessionId) {
+            if (!confirm('Mark this session as completed?')) return;
 
-        async function acceptProposal(proposalId, evt) {
-            const card = evt.target.closest('.proposed-card');
-            const selectedChip = card.querySelector('.option-chip.selected');
-            const selectedTime = selectedChip ? selectedChip.getAttribute('data-time') : null;
-
-            if (!selectedTime) {
-                alert('Please select a time slot first.');
-                return;
-            }
-
-            const response = await fetch('/api/sessions/accept', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ proposalId, selectedTime })
-            });
-
-            if (response.ok) {
-                alert('Proposal accepted!');
-                loadProposedSessions();
-            } else {
-                alert('Failed to accept proposal.');
+            try {
+                const response = await fetch(`/api/complete-session/${sessionId}`, { method: 'POST' });
+                if (response.ok) {
+                    alert('Session marked as completed!');
+                    loadUpcomingSessions();
+                } else {
+                    alert('Failed to update session.');
+                }
+            } catch (err) {
+                console.error('Error completing session:', err);
             }
         }
 
-        async function rejectProposal(proposalId) {
-            const response = await fetch('/api/sessions/reject', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ proposalId })
-            });
+        async function cancelSession(sessionId) {
+            if (!confirm('Are you sure you want to cancel this session?')) return;
 
-            if (response.ok) {
-                alert('Proposal rejected.');
-                loadProposedSessions();
-            } else {
-                alert('Failed to reject proposal.');
+            try {
+                const response = await fetch(`/api/cancel-session/${sessionId}`, { method: 'DELETE' });
+                if (response.ok) {
+                    loadUpcomingSessions();
+                } else {
+                    alert('Failed to cancel session.');
+                }
+            } catch (err) {
+                console.error('Error cancelling session:', err);
+            }
+        }
+
+        async function loadPastSessions() {
+            try {
+                const response = await fetch(`/api/past-sessions?userId=${CURRENT_USER_ID}`);
+                const container = document.getElementById('past-sessions-container');
+                if (!response.ok) return;
+
+                const sessions = await response.json();
+                if (!sessions || sessions.length === 0) {
+                    container.innerHTML = `<p style="color: #64748b;">No completed past sessions on record.</p>`;
+                    return;
+                }
+
+                container.innerHTML = sessions.map(s => `
+                    <div class="proposed-card">
+                        <strong>${s.subject} Session</strong>
+                        <div style="font-size: 13px; color: #475569; margin-top: 4px;">
+                            Completed on ${new Date(s.scheduled_time).toLocaleDateString()} | Duration: ${s.duration_hours || 1.0} hr(s)
+                        </div>
+                    </div>
+                `).join('');
+            } catch (err) {
+                console.error('Error loading past sessions:', err);
+            }
+        }
+
+        async function loadVolunteerHours() {
+            try {
+                const response = await fetch(`/api/volunteer-hours?tutorId=${CURRENT_USER_ID}`);
+                if (!response.ok) return;
+
+                const data = await response.json();
+                document.getElementById('total-volunteer-hours').innerText = `${data.totalHours.toFixed(1)} hrs`;
+
+                const container = document.getElementById('volunteer-log-container');
+                if (!data.logs || data.logs.length === 0) {
+                    container.innerHTML = `<p style="color: #64748b;">No logged volunteer hours yet.</p>`;
+                    return;
+                }
+
+                container.innerHTML = `
+                    <table class="log-table">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Subject</th>
+                                <th>Hours</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${data.logs.map(log => `
+                                <tr>
+                                    <td>${new Date(log.scheduled_time).toLocaleDateString()}</td>
+                                    <td>${log.subject}</td>
+                                    <td>${log.duration_hours} hrs</td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                `;
+            } catch (err) {
+                console.error('Error loading volunteer hours:', err);
             }
         }
     </script>
