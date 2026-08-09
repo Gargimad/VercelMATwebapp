@@ -273,19 +273,24 @@ app.get('/api/proposed-sessions', async (req, res) => {
     res.json(data);
 });
 
-// Accept Proposed Session Endpoint
-app.post('/api/sessions/accept', async (req, res) => {
-    const { proposalId, selectedTime } = req.body;
+// =========================================================================
+// SESSION MANAGEMENT ENDPOINTS (Frontend matching routes)
+// =========================================================================
 
-    if (!proposalId || !selectedTime) {
-        return res.status(400).json({ error: 'Missing proposal ID or selected time slot.' });
+// Accept Proposed Session Endpoint
+app.post('/api/accept-proposal/:proposalId', async (req, res) => {
+    const { proposalId } = req.params;
+    const { acceptedTime } = req.body;
+
+    if (!proposalId || !acceptedTime) {
+        return res.status(400).json({ error: 'Missing proposal ID or accepted time.' });
     }
 
     const { error } = await supabaseAdmin
         .from('sessions')
         .update({ 
             status: 'accepted',
-            scheduled_time: selectedTime
+            scheduled_time: acceptedTime
         })
         .eq('id', proposalId);
 
@@ -298,8 +303,8 @@ app.post('/api/sessions/accept', async (req, res) => {
 });
 
 // Reject Proposed Session Endpoint
-app.post('/api/sessions/reject', async (req, res) => {
-    const { proposalId } = req.body;
+app.delete('/api/reject-proposal/:proposalId', async (req, res) => {
+    const { proposalId } = req.params;
 
     if (!proposalId) {
         return res.status(400).json({ error: 'Missing proposal ID.' });
@@ -313,6 +318,62 @@ app.post('/api/sessions/reject', async (req, res) => {
     if (error) {
         console.error('Error rejecting session:', error.message);
         return res.status(500).json({ error: 'Failed to reject session.' });
+    }
+
+    res.json({ success: true });
+});
+
+// Complete Session Endpoint
+app.post('/api/complete-session/:sessionId', async (req, res) => {
+    const { sessionId } = req.params;
+
+    const { error } = await supabaseAdmin
+        .from('sessions')
+        .update({ status: 'completed' })
+        .eq('id', sessionId);
+
+    if (error) {
+        console.error('Error completing session:', error.message);
+        return res.status(500).json({ error: 'Failed to complete session.' });
+    }
+
+    res.json({ success: true });
+});
+
+// Cancel Session Endpoint
+app.delete('/api/cancel-session/:sessionId', async (req, res) => {
+    const { sessionId } = req.params;
+
+    const { error } = await supabaseAdmin
+        .from('sessions')
+        .update({ status: 'canceled' })
+        .eq('id', sessionId);
+
+    if (error) {
+        console.error('Error canceling session:', error.message);
+        return res.status(500).json({ error: 'Failed to cancel session.' });
+    }
+
+    res.json({ success: true });
+});
+
+// Reschedule Session Endpoint
+app.post('/api/reschedule-session/:sessionId', async (req, res) => {
+    const { sessionId } = req.params;
+    const { scheduledTime } = req.body;
+
+    if (!sessionId || !scheduledTime) {
+        return res.status(400).json({ error: 'Session ID and scheduled time are required.' });
+    }
+
+    const { error } = await supabaseAdmin
+        .from('sessions')
+        .update({ scheduled_time: scheduledTime })
+        .eq('id', sessionId);
+
+    if (error) {
+        console.error('Error rescheduling session:', error.message);
+        return res.status(500).json({ error: 'Failed to reschedule session.' });
     }
 
     res.json({ success: true });
@@ -423,69 +484,6 @@ app.get('/api/volunteer-hours', async (req, res) => {
         totalHours: totalHours.toFixed(1),
         sessions: completedSessions || []
     });
-});
-
-// Complete Session Endpoint
-app.post('/api/sessions/complete', async (req, res) => {
-    const { sessionId } = req.body;
-
-    if (!sessionId) {
-        return res.status(400).json({ error: 'Session ID is required.' });
-    }
-
-    const { error } = await supabaseAdmin
-        .from('sessions')
-        .update({ status: 'completed' })
-        .eq('id', sessionId);
-
-    if (error) {
-        console.error('Error completing session:', error.message);
-        return res.status(500).json({ error: 'Failed to complete session.' });
-    }
-
-    res.json({ success: true });
-});
-
-// Cancel Session Endpoint
-app.post('/api/sessions/cancel', async (req, res) => {
-    const { sessionId } = req.body;
-
-    if (!sessionId) {
-        return res.status(400).json({ error: 'Session ID is required.' });
-    }
-
-    const { error } = await supabaseAdmin
-        .from('sessions')
-        .update({ status: 'canceled' })
-        .eq('id', sessionId);
-
-    if (error) {
-        console.error('Error canceling session:', error.message);
-        return res.status(500).json({ error: 'Failed to cancel session.' });
-    }
-
-    res.json({ success: true });
-});
-
-// Reschedule Session Endpoint
-app.post('/api/sessions/reschedule', async (req, res) => {
-    const { sessionId, newTime } = req.body;
-
-    if (!sessionId || !newTime) {
-        return res.status(400).json({ error: 'Session ID and new time are required.' });
-    }
-
-    const { error } = await supabaseAdmin
-        .from('sessions')
-        .update({ scheduled_time: newTime })
-        .eq('id', sessionId);
-
-    if (error) {
-        console.error('Error rescheduling session:', error.message);
-        return res.status(500).json({ error: 'Failed to reschedule session.' });
-    }
-
-    res.json({ success: true });
 });
 
 // =========================================================================
