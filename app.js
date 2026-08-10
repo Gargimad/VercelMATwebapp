@@ -583,6 +583,43 @@ app.post('/api/users/delete', async (req, res) => {
 app.get('/logout', (req, res) => {
     res.redirect('/');
 });
+// Get user stats
+app.get('/api/user-stats', async (req, res) => {
+    try {
+        const userId = req.query.userId;
+        
+        // Get counts from your database
+        const totalSessions = await db.query(
+            'SELECT COUNT(*) as count FROM sessions WHERE tutor_id = $1 OR tutee_id = $1',
+            [userId]
+        );
+        
+        const upcomingSessions = await db.query(
+            'SELECT COUNT(*) as count FROM sessions WHERE (tutor_id = $1 OR tutee_id = $1) AND status = $2 AND proposed_times > NOW()',
+            [userId, 'accepted']
+        );
+        
+        const pendingSessions = await db.query(
+            'SELECT COUNT(*) as count FROM sessions WHERE (tutor_id = $1 OR tutee_id = $1) AND status = $2',
+            [userId, 'proposed']
+        );
+        
+        const volunteerHours = await db.query(
+            'SELECT SUM(duration_hours) as hours FROM sessions WHERE tutor_id = $1 AND status = $2',
+            [userId, 'completed']
+        );
+        
+        res.json({
+            total: parseInt(totalSessions.rows[0]?.count || 0),
+            upcoming: parseInt(upcomingSessions.rows[0]?.count || 0),
+            pending: parseInt(pendingSessions.rows[0]?.count || 0),
+            hours: parseFloat(volunteerHours.rows[0]?.hours || 0)
+        });
+    } catch (err) {
+        console.error('Error getting stats:', err);
+        res.status(500).json({ error: 'Failed to get stats' });
+    }
+});
 
 if (process.env.NODE_ENV !== 'production') {
     app.listen(PORT, () => console.log(`Server running at http://localhost:${PORT}`));
