@@ -208,15 +208,15 @@ function submitOnboarding() {
         // For tutors, set status to pending
         document.getElementById('statusInput').value = 'pending';
         
-        // Try the pending endpoint first, fallback to regular endpoint
-        submitWithFallback('/submit-onboarding-pending', '/submit-onboarding')
+        // Submit to pending endpoint
+        submitFormData('/submit-onboarding')
             .then(() => {
                 // Show pending approval step
                 showPendingStep();
             })
             .catch((error) => {
                 console.error('Submission error:', error);
-                alert('Could not save profile. Please try again.\n\nError: ' + error.message);
+                alert('Could not save profile. Please try again.');
                 submitBtn.textContent = originalText;
                 submitBtn.disabled = false;
             });
@@ -225,15 +225,15 @@ function submitOnboarding() {
         // For tutees, set status to pending
         document.getElementById('statusInput').value = 'pending';
         
-        // Try the pending endpoint first, fallback to regular endpoint
-        submitWithFallback('/submit-onboarding-pending', '/submit-onboarding')
+        // Submit to pending endpoint
+        submitFormData('/submit-onboarding-pending')
             .then(() => {
                 // Show pending approval step
                 showPendingStep();
             })
             .catch((error) => {
                 console.error('Submission error:', error);
-                alert('Could not save profile. Please try again.\n\nError: ' + error.message);
+                alert('Could not save profile. Please try again.');
                 submitBtn.textContent = originalText;
                 submitBtn.disabled = false;
             });
@@ -247,34 +247,10 @@ function submitOnboarding() {
             })
             .catch((error) => {
                 console.error('Submission error:', error);
-                alert('Could not save profile. Please try again.\n\nError: ' + error.message);
+                alert('Could not save profile. Please try again.');
                 submitBtn.textContent = originalText;
                 submitBtn.disabled = false;
             });
-    }
-}
-
-// Try primary endpoint first, fallback to secondary if it fails
-async function submitWithFallback(primaryEndpoint, fallbackEndpoint) {
-    try {
-        // First try the pending endpoint
-        console.log('Attempting to submit to:', primaryEndpoint);
-        const result = await submitFormData(primaryEndpoint);
-        console.log('Success with primary endpoint');
-        return result;
-    } catch (primaryError) {
-        console.warn('Primary endpoint failed:', primaryError.message);
-        console.log('Falling back to:', fallbackEndpoint);
-        
-        try {
-            // Fallback to regular endpoint with pending status
-            const result = await submitFormData(fallbackEndpoint);
-            console.log('Success with fallback endpoint');
-            return result;
-        } catch (fallbackError) {
-            console.error('Both endpoints failed');
-            throw new Error('Could not save profile. Server may be unavailable.');
-        }
     }
 }
 
@@ -283,68 +259,25 @@ async function submitFormData(endpoint) {
     const formData = new FormData(form);
     const data = Object.fromEntries(formData.entries());
     
-    // Log what we're sending for debugging
-    console.log('Submitting to:', endpoint);
-    console.log('Data being sent:', data);
+    const response = await fetch(endpoint, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data)
+    });
     
-    try {
-        const response = await fetch(endpoint, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(data)
-        });
-        
-        console.log('Response status:', response.status);
-        console.log('Response ok:', response.ok);
-        
-        // Get the response text first
-        const responseText = await response.text();
-        console.log('Response text:', responseText);
-        
-        // Try to parse as JSON
-        let responseData;
-        try {
-            responseData = JSON.parse(responseText);
-        } catch (e) {
-            console.log('Response is not JSON, using text');
-            responseData = { message: responseText };
-        }
-        
-        if (!response.ok) {
-            throw new Error(responseData.message || responseData.error || `Server error: ${response.status}`);
-        }
-        
-        return responseData;
-        
-    } catch (error) {
-        console.error('Fetch error:', error);
-        
-        // Check if it's a network error
-        if (error.name === 'TypeError' && error.message === 'Failed to fetch') {
-            throw new Error('Network error - please check your connection and try again.');
-        }
-        
-        throw error;
+    if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || 'Failed to submit profile');
     }
+    
+    return response.json();
 }
 
 function showPendingStep() {
-    console.log('Showing pending step');
-    
     const currentCard = document.getElementById('step4');
     const pendingCard = document.getElementById('step5');
-    
-    // Check if elements exist
-    if (!currentCard) {
-        console.error('Step 4 card not found');
-        return;
-    }
-    if (!pendingCard) {
-        console.error('Step 5 (pending) card not found');
-        return;
-    }
     
     // Remove any existing animations
     pendingCard.style.animation = 'none';
@@ -372,8 +305,6 @@ function showPendingStep() {
         
         // Fill progress bar completely
         const progressFill = document.querySelector('.progress-fill');
-        if (progressFill) {
-            progressFill.style.width = '100%';
-        }
+        progressFill.style.width = '100%';
     }, 300);
 }

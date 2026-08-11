@@ -22,10 +22,9 @@
         </div>
     </div>
 
-    <form id="onboardingForm">
+    <form id="onboardingForm" action="/submit-onboarding" method="POST">
         <input type="hidden" id="userId" name="userId" />
         <input type="hidden" name="role" id="roleInput" value="tutor" />
-        <input type="hidden" name="status" id="statusInput" value="active" />
 
         <!-- Step 1: Welcome & Name -->
         <div class="card active" id="step1">
@@ -150,29 +149,7 @@
             
             <div class="button-group">
                 <button type="button" class="btn-secondary" onclick="prevStep(4, 3)">← Back</button>
-                <button type="button" class="btn-primary" onclick="submitOnboarding()">Complete Setup →</button>
-            </div>
-        </div>
-
-        <!-- Step 5: Pending Approval (for tutors/tutees) -->
-        <div class="card" id="step5">
-            <div class="brand-section">
-                <div class="brand-icon">✓</div>
-            </div>
-            <h2>Profile Submitted for Review</h2>
-            <p>Thank you for completing your profile! Your information has been submitted for admin approval.</p>
-            
-            <div style="background: rgba(168, 213, 186, 0.1); border: 1px solid #a8d5ba; border-radius: 12px; padding: 20px; margin: 20px 0; text-align: left;">
-                <h4 style="color: #2d5a3e; margin-bottom: 10px; font-family: 'Outfit', sans-serif;">What happens next?</h4>
-                <ul style="color: #4a4a4a; font-size: 14px; line-height: 1.8; padding-left: 20px;">
-                    <li>An admin will review your profile</li>
-                    <li>You'll receive an email notification within 1-2 business days</li>
-                    <li>Once approved, you can log in and start using TutorConnect</li>
-                </ul>
-            </div>
-            
-            <div style="margin-top: 25px;">
-                <a href="/" class="btn-primary" style="display: inline-block; text-decoration: none; padding: 13px 30px; width: auto;">Return to Home</a>
+                <button type="submit" class="btn-primary">Complete Setup →</button>
             </div>
         </div>
     </form>
