@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JCHS Mu Alpha Theta Onboarding</title>
+    <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+
+    <form id="onboardingForm" action="/submit-onboarding" method="POST">
+        
+        <input type="hidden" id="userId" name="userId" />
+
+        <div class="card active" id="step1">
+            <h2>Welcome to JCHS Mu Alpha Theta</h2>
+            <h4>Johns Creek High School's Math Tutoring Platform</h4>
+            <p>What is your name?</p>
+            <input type="text" id="username" name="username" placeholder="Enter your full name" required>
+            <button type="button" onclick="nextStep(1, 2)">Next Step &rarr;</button>
+        </div>
+
+        <div class="card" id="step2">
+            <h2>What's your role?</h2>
+            <select name="role" id="roleSelect" class="form-select" onchange="updateRoleText()">
+                <option value="tutor">Tutor</option>
+                <option value="tutee">Tutee</option>
+                <option value="admin">School Admin</option>
+            </select>
+            <div class="button-group">
+                <button type="button" onclick="prevStep(2, 1)">&larr; Back</button>
+                <button type="button" onclick="handleRoleNext()">Next Step &rarr;</button>
+            </div>
+        </div>
+
+        <div class="card" id="stepAdmin">
+            <h2>Admin Verification</h2>
+            <p>Please enter the secret admin access passcode:</p>
+            <input type="password" id="adminPassword" placeholder="Enter admin password">
+            <p id="adminError" style="color: #e53e3e; display: none; font-size: 14px; margin-top: 8px; font-weight: bold;">
+                Incorrect password! Please try again.
+            </p>
+            <div class="button-group">
+                <button type="button" onclick="prevStep('Admin', 2)">&larr; Back</button>
+                <button type="button" onclick="verifyAndSubmitAdmin()">Complete Onboarding &rarr;</button>
+            </div>
+        </div>
+
+        <div class="card" id="step3">
+            <h2>What grade are you in currently?</h2>
+            <select name="grade" id="gradeSelect" class="form-select">
+                <option value="9">9th Grade</option>
+                <option value="10">10th Grade</option>
+                <option value="11">11th Grade</option>
+                <option value="12">12th Grade</option>
+            </select>
+            <div class="button-group">
+                <button type="button" onclick="prevStep(3, 2)">&larr; Back</button>
+                <button type="button" onclick="nextStep(3, 4)">Next Step &rarr;</button>
+            </div>
+        </div>
+
+        <div class="card" id="step4">
+            <h2 id="subjectHeading">What class do you need tutoring help in?</h2>
+            <p>Choose your primary subject now. You can add more areas of interest in your profile settings later!</p>
+            <select name="subject" id="subjectSelect" class="form-select">
+                <option value="Algebra">Algebra</option>
+                <option value="Algebra H">Algebra H</option>
+                <option value="Advanced Algebra">Advanced Algebra</option>
+                <option value="Precalculus">Precalculus</option>
+                <option value="AP Precalculus">AP Precalculus</option>
+                <option value="AP Calculus AB">AP Calculus AB</option>
+                <option value="AP Calculus BC">AP Calculus BC</option>
+                <option value="AP Statistics">AP Statistics</option>
+                <option value="AMDM">AMDM</option>
+            </select>
+            <div class="button-group">
+                <button type="button" onclick="prevStep(4, 3)">&larr; Back</button>
+                <button type="submit">Complete Onboarding &rarr;</button>
+            </div>
+        </div>
+
+    </form>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            const userId = urlParams.get('userId');
+            
+            if (userId) {
+                document.getElementById('userId').value = userId;
+            } else {
+                alert("Missing User ID parameter. Redirecting to login...");
+                window.location.href = '/';
+            }
+            updateRoleText();
+        });
+
+        function updateRoleText() {
+            const role = document.getElementById('roleSelect').value;
+            const heading = document.getElementById('subjectHeading');
+            if (role === 'tutor') {
+                heading.innerText = "What class would you like to tutor in?";
+            } else if (role === 'tutee') {
+                heading.innerText = "What class do you need tutoring help in?";
+            }
+        }
+
+        function nextStep(currentId, nextId) {
+            if (currentId === 1) {
+                const nameInput = document.getElementById('username').value.trim();
+                if (!nameInput) {
+                    alert("Please enter your name to proceed!");
+                    return;
+                }
+            }
+
+            document.getElementById('step' + currentId).classList.remove('active');
+            document.getElementById('step' + nextId).classList.add('active');
+        }
+
+        function prevStep(currentId, prevId) {
+            document.getElementById('step' + currentId).classList.remove('active');
+            document.getElementById('step' + prevId).classList.add('active');
+        }
+
+        function handleRoleNext() {
+            const role = document.getElementById('roleSelect').value;
+            document.getElementById('step2').classList.remove('active');
+
+            if (role === 'admin') {
+                document.getElementById('stepAdmin').classList.add('active');
+            } else {
+                document.getElementById('step3').classList.add('active');
+            }
+        }
+
+        function verifyAndSubmitAdmin() {
+            const pass = document.getElementById('adminPassword').value;
+            const errorMsg = document.getElementById('adminError');
+
+            if (pass === 'iLoveMath') {
+                errorMsg.style.display = 'none';
+
+                const gradeSelect = document.getElementById('gradeSelect');
+                const subjectSelect = document.getElementById('subjectSelect');
+
+                gradeSelect.innerHTML += '<option value="Admin" selected>Admin</option>';
+                subjectSelect.innerHTML += '<option value="Admin" selected>Admin</option>';
+
+                document.getElementById('onboardingForm').submit();
+            } else {
+                errorMsg.style.display = 'block';
+            }
+        }
+    </script>
+</body>
+</html>

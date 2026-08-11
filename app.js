@@ -584,43 +584,67 @@ app.get('/logout', (req, res) => {
     res.redirect('/');
 });
 // Get user stats
+// Get user stats - FIXED VERSION
 app.get('/api/user-stats', async (req, res) => {
     try {
         const userId = req.query.userId;
         
-        // Get counts from your database
-        const totalSessions = await db.query(
-            'SELECT COUNT(*) as count FROM sessions WHERE tutor_id = $1 OR tutee_id = $1',
-            [userId]
-        );
+        if (!userId) {
+            return res.status(400).json({ error: 'User ID is required' });
+        }
         
-        const upcomingSessions = await db.query(
-            'SELECT COUNT(*) as count FROM sessions WHERE (tutor_id = $1 OR tutee_id = $1) AND status = $2 AND proposed_times > NOW()',
-            [userId, 'accepted']
-        );
+        // Get all relevant sessions for this user
+        const { data: allSessions, error: sessionsError } = await supabase
+            .from('sessions')
+            .select('*')
+            .or(`tutor_id.eq.${userId},tutee_id.eq.${userId}`);
+            
+        if (sessionsError) {
+            console.error('Error fetching sessions for stats:', sessionsError.message);
+            return res.status(500).json({ error: 'Failed to fetch session stats' });
+        }
         
-        const pendingSessions = await db.query(
-            'SELECT COUNT(*) as count FROM sessions WHERE (tutor_id = $1 OR tutee_id = $1) AND status = $2',
-            [userId, 'proposed']
-        );
+        // Count totals
+        const totalSessions = allSessions ? allSessions.length : 0;
         
-        const volunteerHours = await db.query(
-            'SELECT SUM(duration_hours) as hours FROM sessions WHERE tutor_id = $1 AND status = $2',
-            [userId, 'completed']
-        );
+        // Count upcoming (accepted sessions with future dates)
+        const upcomingSessions = allSessions 
+            ? allSessions.filter(s => 
+                s.status === 'accepted' && 
+                s.scheduled_time && 
+                new Date(s.scheduled_time) > new Date()
+            ).length 
+            : 0;
+        
+        // Count pending (proposed sessions)
+        const pendingSessions = allSessions 
+            ? allSessions.filter(s => s.status === 'proposed').length 
+            : 0;
+        
+        // Calculate total hours for tutors
+        let totalHours = 0;
+        if (allSessions) {
+            const completedSessions = allSessions.filter(
+                s => s.status === 'completed' && s.tutor_id === userId
+            );
+            totalHours = completedSessions.reduce(
+                (sum, s) => sum + (parseFloat(s.duration_hours) || 1.0), 
+                0
+            );
+        }
         
         res.json({
-            total: parseInt(totalSessions.rows[0]?.count || 0),
-            upcoming: parseInt(upcomingSessions.rows[0]?.count || 0),
-            pending: parseInt(pendingSessions.rows[0]?.count || 0),
-            hours: parseFloat(volunteerHours.rows[0]?.hours || 0)
+            total: totalSessions,
+            upcoming: upcomingSessions,
+            pending: pendingSessions,
+            hours: parseFloat(totalHours.toFixed(1))
         });
+        
     } catch (err) {
         console.error('Error getting stats:', err);
         res.status(500).json({ error: 'Failed to get stats' });
     }
 });
-
 if (process.env.NODE_ENV !== 'production') {
     app.listen(PORT, () => console.log(`Server running at http://localhost:${PORT}`));
 }

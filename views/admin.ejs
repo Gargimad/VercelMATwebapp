@@ -3,193 +3,92 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>JCHS Mu Alpha Theta - Admin Portal</title>
-    <link rel="stylesheet" href="/style.css">
-    <style>
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-            background-color: #f4f6f8;
-            margin: 0;
-            padding: 25px;
-            color: #333;
-        }
-        .container {
-            max-width: 1150px;
-            margin: auto;
-            background: #ffffff;
-            padding: 30px;
-            border-radius: 10px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
-        }
-        .header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 2px solid #eef2f5;
-            padding-bottom: 15px;
-            margin-bottom: 25px;
-        }
-        .header h2 {
-            margin: 0;
-            color: #1a202c;
-        }
-        .logout-btn {
-            text-decoration: none;
-            color: #e53e3e;
-            font-weight: 600;
-            padding: 8px 12px;
-            border-radius: 6px;
-            transition: background 0.2s;
-        }
-        .logout-btn:hover {
-            background: #fff5f5;
-        }
-
-        /* Stats Grid */
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 15px;
-            margin-bottom: 30px;
-        }
-        .stat-card {
-            background: #f8fafc;
-            border: 1px solid #e2e8f0;
-            padding: 20px;
-            border-radius: 8px;
-            text-align: center;
-        }
-        .stat-card h3 {
-            margin: 0;
-            font-size: 28px;
-            color: #2b6cb0;
-        }
-        .stat-card p {
-            margin: 5px 0 0 0;
-            color: #4a5568;
-            font-size: 14px;
-            font-weight: 500;
-        }
-
-        /* Filter Controls */
-        .filter-group {
-            margin-bottom: 20px;
-            display: flex;
-            gap: 10px;
-            flex-wrap: wrap;
-        }
-        .filter-btn {
-            padding: 8px 18px;
-            border: 1px solid #cbd5e0;
-            background: #ffffff;
-            color: #4a5568;
-            border-radius: 6px;
-            cursor: pointer;
-            font-weight: 500;
-            transition: all 0.2s;
-        }
-        .filter-btn:hover {
-            background: #f7fafc;
-        }
-        .filter-btn.active {
-            background: #3182ce;
-            color: white;
-            border-color: #3182ce;
-        }
-
-        /* Table Design */
-        .table-responsive {
-            overflow-x: auto;
-        }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            text-align: left;
-        }
-        th, td {
-            padding: 14px;
-            border-bottom: 1px solid #e2e8f0;
-        }
-        th {
-            background-color: #f7fafc;
-            color: #4a5568;
-            font-size: 13px;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-        }
-        
-        /* Badges */
-        .badge {
-            padding: 5px 10px;
-            border-radius: 12px;
-            font-size: 12px;
-            font-weight: 600;
-            text-transform: capitalize;
-            display: inline-block;
-        }
-        .badge-pending { background: #fefcbf; color: #744210; }
-        .badge-active { background: #c6f6d5; color: #22543d; }
-        .badge-rejected { background: #fed7d7; color: #742a2a; }
-
-        /* Action Buttons */
-        .btn-action {
-            border: none;
-            padding: 6px 12px;
-            border-radius: 4px;
-            cursor: pointer;
-            font-weight: 600;
-            font-size: 13px;
-            margin-right: 4px;
-            transition: opacity 0.2s;
-        }
-        .btn-action:hover { opacity: 0.85; }
-        .btn-approve { background-color: #38a169; color: white; }
-        .btn-reject { background-color: #e53e3e; color: white; }
-        .btn-delete { background-color: #718096; color: white; }
-    </style>
+    <title>Admin Portal - TutorConnect</title>
+    <link rel="stylesheet" href="/css/admin.css">
 </head>
 <body>
 
 <div class="container">
+    <!-- Header -->
     <div class="header">
-        <h2>JCHS Mu Alpha Theta — Admin Portal</h2>
-        <a href="/logout" class="logout-btn">Logout</a>
+        <div class="header-left">
+            <div class="brand-icon">TC</div>
+            <div>
+                <h2>Admin Portal</h2>
+                <div class="header-subtitle">TutorConnect Management</div>
+            </div>
+        </div>
+        <a href="/logout" class="logout-btn">← Logout</a>
     </div>
 
+    <!-- Stats Grid -->
     <div class="stats-grid">
-        <div class="stat-card">
-            <h3><%= users.filter(u => u.status === 'pending').length %></h3>
-            <p>Pending Approvals</p>
+        <div class="stat-card pending">
+            <div class="stat-number"><%= users.filter(u => u.status === 'pending').length %></div>
+            <div class="stat-label">Pending Approvals</div>
         </div>
-        <div class="stat-card">
-            <h3><%= users.filter(u => u.role === 'tutor' || u.role === 'both').length %></h3>
-            <p>Total Tutors</p>
+        <div class="stat-card active">
+            <div class="stat-number"><%= users.filter(u => u.status === 'active').length %></div>
+            <div class="stat-label">Active Users</div>
         </div>
-        <div class="stat-card">
-            <h3><%= users.filter(u => u.role === 'tutee' || u.role === 'both').length %></h3>
-            <p>Total Tutees</p>
+        <div class="stat-card tutors">
+            <div class="stat-number"><%= users.filter(u => u.role === 'tutor').length %></div>
+            <div class="stat-label">Total Tutors</div>
         </div>
-        <div class="stat-card">
-            <h3><%= users.length %></h3>
-            <p>Total Registered</p>
+        <div class="stat-card total">
+            <div class="stat-number"><%= users.length %></div>
+            <div class="stat-label">Total Registered</div>
         </div>
     </div>
 
+    <!-- Bulk Actions Bar -->
+    <div class="bulk-actions hidden" id="bulkActions">
+        <div class="bulk-info">
+            <span id="selectedCount">0</span> user(s) selected
+        </div>
+        <div class="bulk-buttons">
+            <button class="bulk-btn bulk-approve" onclick="bulkUpdateStatus('active')">
+                ✓ Approve Selected
+            </button>
+            <button class="bulk-btn bulk-reject" onclick="bulkUpdateStatus('rejected')">
+                ✕ Reject Selected
+            </button>
+        </div>
+    </div>
+
+    <!-- Filter Controls -->
     <div class="filter-group">
-        <button class="filter-btn active" onclick="filterUsers('all', this)">All Users</button>
-        <button class="filter-btn" onclick="filterUsers('pending', this)">Pending Only</button>
-        <button class="filter-btn" onclick="filterUsers('active', this)">Approved / Active</button>
-        <button class="filter-btn" onclick="filterUsers('rejected', this)">Rejected</button>
+        <button class="filter-btn active" onclick="filterUsers('all', this)">
+            All Users
+            <span class="filter-count"><%= users.length %></span>
+        </button>
+        <button class="filter-btn" onclick="filterUsers('pending', this)">
+            Pending
+            <span class="filter-count"><%= users.filter(u => u.status === 'pending').length %></span>
+        </button>
+        <button class="filter-btn" onclick="filterUsers('active', this)">
+            Active
+            <span class="filter-count"><%= users.filter(u => u.status === 'active').length %></span>
+        </button>
+        <button class="filter-btn" onclick="filterUsers('rejected', this)">
+            Rejected
+            <span class="filter-count"><%= users.filter(u => u.status === 'rejected').length %></span>
+        </button>
     </div>
 
+    <!-- Users Table -->
     <div class="table-responsive">
         <table>
             <thead>
                 <tr>
-                    <th>Name</th>
+                    <th>
+                        <input type="checkbox" class="select-all-checkbox" onclick="toggleSelectAll(this)" title="Select All">
+                    </th>
+                    <th>User</th>
                     <th>Role</th>
                     <th>Grade</th>
-                    <th>Subject Interest</th>
+                    <th>Subject</th>
+                    <th>Volunteer Hours</th>
                     <th>Status</th>
                     <th>Actions</th>
                 </tr>
@@ -197,24 +96,55 @@
             <tbody id="userTableBody">
                 <% if (users.length === 0) { %>
                     <tr>
-                        <td colspan="6" style="text-align: center; color: #718096; padding: 20px;">No users found.</td>
+                        <td colspan="8">
+                            <div class="empty-state">
+                                <div class="empty-state-icon">📋</div>
+                                <p>No users found in the system.</p>
+                            </div>
+                        </td>
                     </tr>
                 <% } %>
                 <% users.forEach(user => { %>
-                    <tr class="user-row status-<%= user.status %>">
-                        <td><strong><%= user.username %></strong></td>
-                        <td style="text-transform: capitalize;"><%= user.role %></td>
+                    <tr class="user-row status-<%= user.status %>" data-user-id="<%= user.id %>" data-status="<%= user.status %>">
+                        <td>
+                            <div class="checkbox-wrapper">
+                                <input type="checkbox" class="user-checkbox" value="<%= user.id %>" onchange="updateBulkActions()">
+                            </div>
+                        </td>
+                        <td>
+                            <div class="user-name"><%= user.username %></div>
+                            <div class="user-email">ID: <%= user.id.substring(0, 8) %>...</div>
+                        </td>
+                        <td>
+                            <span style="text-transform: capitalize;"><%= user.role %></span>
+                            <% if (user.role === 'tutor') { %>
+                                <br><span class="badge badge-tutor">Tutor</span>
+                            <% } %>
+                        </td>
                         <td><%= user.grade ? user.grade + 'th' : 'N/A' %></td>
                         <td><%= user.subject %></td>
+                        <td>
+                            <% if (user.role === 'tutor') { %>
+                                <div class="volunteer-hours" id="hours-<%= user.id %>">
+                                    <span>Loading...</span>
+                                </div>
+                            <% } else { %>
+                                <span style="color: #a0aec0;">—</span>
+                            <% } %>
+                        </td>
                         <td>
                             <span class="badge badge-<%= user.status %>" id="badge-<%= user.id %>">
                                 <%= user.status %>
                             </span>
                         </td>
                         <td>
-                            <button class="btn-action btn-approve" onclick="updateUserStatus('<%= user.id %>', 'active')">Approve</button>
-                            <button class="btn-action btn-reject" onclick="updateUserStatus('<%= user.id %>', 'rejected')">Reject</button>
-                            <button class="btn-action btn-delete" onclick="deleteUser('<%= user.id %>')">Delete Account</button>
+                            <% if (user.status === 'pending') { %>
+                                <button class="btn-action btn-approve" onclick="updateUserStatus('<%= user.id %>', 'active')">✓ Approve</button>
+                                <button class="btn-action btn-reject" onclick="updateUserStatus('<%= user.id %>', 'rejected')">✕ Reject</button>
+                            <% } else if (user.status === 'rejected') { %>
+                                <button class="btn-action btn-approve" onclick="updateUserStatus('<%= user.id %>', 'active')">↩ Re-approve</button>
+                            <% } %>
+                            <button class="btn-action btn-delete" onclick="deleteUser('<%= user.id %>')">🗑 Delete</button>
                         </td>
                     </tr>
                 <% }); %>
@@ -224,12 +154,41 @@
 </div>
 
 <script>
-    // Get current Admin ID from URL parameter (?id=xyz)
     const urlParams = new URLSearchParams(window.location.search);
     const currentAdminId = urlParams.get('id');
 
-    // Update status (Approve / Reject) via API
+    // ===== LOAD VOLUNTEER HOURS FOR TUTORS =====
+    async function loadVolunteerHours() {
+        const tutorRows = document.querySelectorAll('.user-row');
+        
+        for (const row of tutorRows) {
+            const userId = row.dataset.userId;
+            const hoursCell = document.getElementById(`hours-${userId}`);
+            
+            if (hoursCell) {
+                try {
+                    const response = await fetch(`/api/volunteer-hours?userId=${userId}`);
+                    if (response.ok) {
+                        const data = await response.json();
+                        hoursCell.innerHTML = `
+                            <strong>${data.totalHours}</strong> hrs
+                            <br><span>${data.sessions.length} sessions</span>
+                        `;
+                    } else {
+                        hoursCell.innerHTML = '<span style="color: #a0aec0;">0 hrs</span>';
+                    }
+                } catch (err) {
+                    hoursCell.innerHTML = '<span style="color: #a0aec0;">Error</span>';
+                }
+            }
+        }
+    }
+
+    // ===== UPDATE SINGLE USER STATUS =====
     async function updateUserStatus(userId, status) {
+        const action = status === 'active' ? 'approve' : 'reject';
+        if (!confirm(`Are you sure you want to ${action} this user?`)) return;
+
         try {
             const response = await fetch('/api/users/update-status', {
                 method: 'POST',
@@ -244,28 +203,70 @@
             const result = await response.json();
 
             if (response.ok) {
-                // Update badge live
-                const badge = document.getElementById(`badge-${userId}`);
-                badge.className = `badge badge-${status}`;
-                badge.innerText = status;
-
-                // Update row class
-                const row = badge.closest('tr');
-                row.className = `user-row status-${status}`;
+                updateUserRow(userId, status);
+                showToast(`User ${action}d successfully!`, 'success');
+                updateStatsCounts();
             } else {
-                alert('Error updating user: ' + result.error);
+                showToast('Error: ' + result.error, 'error');
             }
         } catch (err) {
             console.error('Update status error:', err);
-            alert('Failed to connect to server.');
+            showToast('Failed to connect to server.', 'error');
         }
     }
 
-    // Delete user completely from Auth and Database
-    async function deleteUser(userId) {
-        if (!confirm("Are you sure you want to completely delete this user? They will have to sign up again.")) {
+    // ===== BULK UPDATE STATUS =====
+    async function bulkUpdateStatus(status) {
+        const selectedCheckboxes = document.querySelectorAll('.user-checkbox:checked');
+        if (selectedCheckboxes.length === 0) {
+            showToast('Please select at least one user.', 'error');
             return;
         }
+
+        const action = status === 'active' ? 'approve' : 'reject';
+        if (!confirm(`Are you sure you want to ${action} ${selectedCheckboxes.length} user(s)?`)) return;
+
+        let successCount = 0;
+        let failCount = 0;
+
+        for (const checkbox of selectedCheckboxes) {
+            const userId = checkbox.value;
+            try {
+                const response = await fetch('/api/users/update-status', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        userId, 
+                        status,
+                        adminId: currentAdminId 
+                    })
+                });
+
+                if (response.ok) {
+                    updateUserRow(userId, status);
+                    successCount++;
+                } else {
+                    failCount++;
+                }
+            } catch (err) {
+                failCount++;
+            }
+        }
+
+        if (successCount > 0) {
+            showToast(`${successCount} user(s) ${action}d successfully!`, 'success');
+        }
+        if (failCount > 0) {
+            showToast(`${failCount} user(s) failed to update.`, 'error');
+        }
+
+        updateStatsCounts();
+        updateBulkActions();
+    }
+
+    // ===== DELETE USER =====
+    async function deleteUser(userId) {
+        if (!confirm("Are you sure you want to permanently delete this user? This cannot be undone.")) return;
 
         try {
             const response = await fetch('/api/users/delete', {
@@ -280,32 +281,137 @@
             const result = await response.json();
 
             if (response.ok) {
-                // Remove row from table
-                const badge = document.getElementById(`badge-${userId}`);
-                badge.closest('tr').remove();
+                const row = document.querySelector(`tr[data-user-id="${userId}"]`);
+                if (row) {
+                    row.style.transition = 'all 0.3s ease';
+                    row.style.opacity = '0';
+                    row.style.transform = 'translateX(20px)';
+                    setTimeout(() => row.remove(), 300);
+                }
+                showToast('User deleted successfully!', 'success');
+                updateStatsCounts();
             } else {
-                alert('Error deleting user: ' + result.error);
+                showToast('Error: ' + result.error, 'error');
             }
         } catch (err) {
             console.error('Delete error:', err);
-            alert('Failed to connect to server.');
+            showToast('Failed to connect to server.', 'error');
         }
     }
 
-    // Filter table rows on screen
+    // ===== HELPER: Update User Row UI =====
+    function updateUserRow(userId, status) {
+        const badge = document.getElementById(`badge-${userId}`);
+        if (badge) {
+            badge.className = `badge badge-${status}`;
+            badge.innerText = status;
+        }
+
+        const row = document.querySelector(`tr[data-user-id="${userId}"]`);
+        if (row) {
+            row.className = `user-row status-${status}`;
+            row.dataset.status = status;
+
+            // Update action buttons
+            const actionCell = row.querySelector('td:last-child');
+            if (status === 'active') {
+                actionCell.innerHTML = `
+                    <button class="btn-action btn-delete" onclick="deleteUser('${userId}')">🗑 Delete</button>
+                `;
+            } else if (status === 'rejected') {
+                actionCell.innerHTML = `
+                    <button class="btn-action btn-approve" onclick="updateUserStatus('${userId}', 'active')">↩ Re-approve</button>
+                    <button class="btn-action btn-delete" onclick="deleteUser('${userId}')">🗑 Delete</button>
+                `;
+            }
+
+            // Uncheck the checkbox
+            const checkbox = row.querySelector('.user-checkbox');
+            if (checkbox) checkbox.checked = false;
+        }
+    }
+
+    // ===== BULK SELECTION =====
+    function toggleSelectAll(selectAllCheckbox) {
+        const checkboxes = document.querySelectorAll('.user-checkbox:not([style*="display: none"])');
+        checkboxes.forEach(cb => {
+            const row = cb.closest('tr');
+            if (row && row.style.display !== 'none') {
+                cb.checked = selectAllCheckbox.checked;
+            }
+        });
+        updateBulkActions();
+    }
+
+    function updateBulkActions() {
+        const selectedCheckboxes = document.querySelectorAll('.user-checkbox:checked');
+        const bulkActions = document.getElementById('bulkActions');
+        const selectedCount = document.getElementById('selectedCount');
+        
+        const count = selectedCheckboxes.length;
+        
+        if (count > 0) {
+            bulkActions.classList.remove('hidden');
+            selectedCount.textContent = count;
+        } else {
+            bulkActions.classList.add('hidden');
+        }
+    }
+
+    // ===== FILTER USERS =====
     function filterUsers(filter, button) {
         document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
         button.classList.add('active');
 
         const rows = document.querySelectorAll('.user-row');
         rows.forEach(row => {
-            if (filter === 'all' || row.classList.contains(`status-${filter}`)) {
+            if (filter === 'all' || row.dataset.status === filter) {
                 row.style.display = '';
             } else {
                 row.style.display = 'none';
+                const checkbox = row.querySelector('.user-checkbox');
+                if (checkbox) checkbox.checked = false;
             }
         });
+
+        // Reset select all
+        document.querySelector('.select-all-checkbox').checked = false;
+        updateBulkActions();
     }
+
+    // ===== UPDATE STATS =====
+    function updateStatsCounts() {
+        // Reload page to refresh stats (simple approach)
+        // For dynamic update, you could recalculate from visible rows
+        setTimeout(() => location.reload(), 1000);
+    }
+
+    // ===== TOAST NOTIFICATIONS =====
+    function showToast(message, type = 'success') {
+        const toast = document.createElement('div');
+        toast.className = `toast toast-${type}`;
+        toast.textContent = message;
+        document.body.appendChild(toast);
+
+        setTimeout(() => {
+            toast.style.opacity = '0';
+            toast.style.transform = 'translateX(100%)';
+            toast.style.transition = 'all 0.3s ease';
+            setTimeout(() => toast.remove(), 300);
+        }, 3000);
+    }
+
+    // ===== INITIALIZE =====
+    document.addEventListener('DOMContentLoaded', () => {
+        loadVolunteerHours();
+    });
+
+    // Update bulk actions when checkboxes change
+    document.addEventListener('change', (e) => {
+        if (e.target.classList.contains('user-checkbox')) {
+            updateBulkActions();
+        }
+    });
 </script>
 
 </body>
