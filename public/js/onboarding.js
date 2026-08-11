@@ -163,6 +163,7 @@ function handleRoleNext() {
         }
     }, 300);
 }
+
 function verifyAndSubmitAdmin() {
     const pass = document.getElementById('adminPassword').value;
     const errorMsg = document.getElementById('adminError');
@@ -173,11 +174,137 @@ function verifyAndSubmitAdmin() {
         const subjectSelect = document.getElementById('subjectSelect');
         gradeSelect.innerHTML = '<option value="Admin" selected>Administrator</option>';
         subjectSelect.innerHTML = '<option value="Admin" selected>All Subjects (Admin)</option>';
-        document.getElementById('onboardingForm').submit();
+        
+        // Set status to active for admins
+        document.getElementById('statusInput').value = 'active';
+        
+        // Submit the form for admin
+        submitFormData('/submit-onboarding');
     } else {
         errorMsg.classList.add('show');
         setTimeout(() => {
             errorMsg.classList.remove('show');
         }, 3000);
     }
+}
+
+function submitOnboarding() {
+    const role = document.getElementById('roleInput').value;
+    const username = document.getElementById('username').value;
+    
+    // Validate
+    if (!username.trim()) {
+        alert("Please go back and enter your name!");
+        return;
+    }
+    
+    // Show loading state
+    const submitBtn = document.querySelector('#step4 .btn-primary');
+    const originalText = submitBtn.textContent;
+    submitBtn.textContent = 'Submitting...';
+    submitBtn.disabled = true;
+    
+    if (role === 'tutor') {
+        // For tutors, set status to pending
+        document.getElementById('statusInput').value = 'pending';
+        
+        // Submit to pending endpoint
+        submitFormData('/submit-onboarding-pending')
+            .then(() => {
+                // Show pending approval step
+                showPendingStep();
+            })
+            .catch((error) => {
+                console.error('Submission error:', error);
+                alert('Could not save profile. Please try again.');
+                submitBtn.textContent = originalText;
+                submitBtn.disabled = false;
+            });
+            
+    } else if (role === 'tutee') {
+        // For tutees, set status to pending
+        document.getElementById('statusInput').value = 'pending';
+        
+        // Submit to pending endpoint
+        submitFormData('/submit-onboarding-pending')
+            .then(() => {
+                // Show pending approval step
+                showPendingStep();
+            })
+            .catch((error) => {
+                console.error('Submission error:', error);
+                alert('Could not save profile. Please try again.');
+                submitBtn.textContent = originalText;
+                submitBtn.disabled = false;
+            });
+            
+    } else {
+        // For other roles, submit directly
+        document.getElementById('statusInput').value = 'active';
+        submitFormData('/submit-onboarding')
+            .then(() => {
+                window.location.href = '/dashboard';
+            })
+            .catch((error) => {
+                console.error('Submission error:', error);
+                alert('Could not save profile. Please try again.');
+                submitBtn.textContent = originalText;
+                submitBtn.disabled = false;
+            });
+    }
+}
+
+async function submitFormData(endpoint) {
+    const form = document.getElementById('onboardingForm');
+    const formData = new FormData(form);
+    const data = Object.fromEntries(formData.entries());
+    
+    const response = await fetch(endpoint, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data)
+    });
+    
+    if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || 'Failed to submit profile');
+    }
+    
+    return response.json();
+}
+
+function showPendingStep() {
+    const currentCard = document.getElementById('step4');
+    const pendingCard = document.getElementById('step5');
+    
+    // Remove any existing animations
+    pendingCard.style.animation = 'none';
+    
+    // Start slide out animation
+    currentCard.classList.add('slide-out');
+    
+    setTimeout(() => {
+        // Hide current card
+        currentCard.classList.remove('active', 'slide-out');
+        currentCard.style.display = 'none';
+        
+        // Show pending card with animation
+        pendingCard.style.display = 'block';
+        pendingCard.classList.add('active');
+        
+        // Trigger reflow for animation to work
+        pendingCard.offsetHeight;
+        
+        // Apply slide in animation
+        pendingCard.style.animation = 'cardSlideIn 0.6s cubic-bezier(0.16, 1, 0.3, 1)';
+        
+        // Update progress to complete
+        updateProgress(4);
+        
+        // Fill progress bar completely
+        const progressFill = document.querySelector('.progress-fill');
+        progressFill.style.width = '100%';
+    }, 300);
 }
