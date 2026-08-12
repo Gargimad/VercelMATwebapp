@@ -275,7 +275,6 @@ async function submitFormData(endpoint) {
     const formData = new FormData(form);
     const data = Object.fromEntries(formData.entries());
     
-    // Log what we're sending for debugging
     console.log('Submitting to:', endpoint);
     console.log('Data being sent:', data);
     
@@ -284,6 +283,7 @@ async function submitFormData(endpoint) {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest' // Add this header
             },
             body: JSON.stringify(data)
         });
@@ -299,12 +299,12 @@ async function submitFormData(endpoint) {
         try {
             responseData = JSON.parse(responseText);
         } catch (e) {
-            console.log('Response is not JSON, using text');
-            responseData = { message: responseText };
+            console.error('Failed to parse JSON:', e);
+            throw new Error('Server returned invalid response format');
         }
         
-        if (!response.ok) {
-            throw new Error(responseData.message || responseData.error || `Server error: ${response.status}`);
+        if (!response.ok || !responseData.success) {
+            throw new Error(responseData.error || responseData.message || `Server error: ${response.status}`);
         }
         
         return responseData;
@@ -320,7 +320,6 @@ async function submitFormData(endpoint) {
         throw error;
     }
 }
-
 // Remove or comment out the submitWithFallback function (it's no longer needed)
 // async function submitWithFallback(primaryEndpoint, fallbackEndpoint) { ... }// Try primary endpoint first, fallback to secondary if it fails
 async function submitWithFallback(primaryEndpoint, fallbackEndpoint) {

@@ -100,11 +100,15 @@ app.get('/auth/verify', async (req, res) => {
 });
 
 // Submit Onboarding Form Route
+// Submit Onboarding Form Route - FIXED VERSION
 app.post('/submit-onboarding', async (req, res) => {
     const { userId, username, role, grade, subject } = req.body;
 
     if (!userId || !username || !role || !grade || !subject) {
-        return res.status(400).send('Missing required onboarding fields.');
+        return res.status(400).json({ 
+            success: false, 
+            error: 'Missing required onboarding fields.' 
+        });
     }
 
     const accountStatus = (role === 'admin') ? 'active' : 'pending';
@@ -122,16 +126,33 @@ app.post('/submit-onboarding', async (req, res) => {
 
     if (error) {
         console.error('Supabase Insert Error:', error.message);
-        return res.status(500).send('Could not save profile. Please try again.');
+        return res.status(500).json({ 
+            success: false, 
+            error: 'Could not save profile. Please try again.' 
+        });
     }
 
-    if (role === 'admin') {
-        res.redirect(`/admin?id=${userId}`);
+    // Check if it's an AJAX request
+    const isAjax = req.headers['x-requested-with'] === 'XMLHttpRequest' || 
+                   req.headers['accept'] === 'application/json';
+
+    if (isAjax) {
+        // Return JSON for AJAX requests
+        return res.json({ 
+            success: true, 
+            message: 'Profile saved successfully',
+            role: role,
+            redirect: role === 'admin' ? `/admin?id=${userId}` : '/pending'
+        });
     } else {
-        res.redirect('/pending');
+        // Redirect for regular form submissions
+        if (role === 'admin') {
+            res.redirect(`/admin?id=${userId}`);
+        } else {
+            res.redirect('/pending');
+        }
     }
 });
-
 // =========================================================================
 // STUDENT / TUTOR ROUTES
 // =========================================================================
@@ -223,7 +244,43 @@ app.get('/available-peers', async (req, res) => {
         res.status(500).json({ error: 'Failed to retrieve available peers' });
     }
 });
+// Pending submission endpoint
+app.post('/submit-onboarding-pending', async (req, res) => {
+    const { userId, username, role, grade, subject } = req.body;
 
+    if (!userId || !username || !role || !grade || !subject) {
+        return res.status(400).json({ 
+            success: false, 
+            error: 'Missing required onboarding fields.' 
+        });
+    }
+
+    const { error } = await supabaseAdmin
+        .from('users')
+        .insert([{ 
+            id: userId, 
+            username, 
+            role, 
+            grade, 
+            subject, 
+            status: 'pending' 
+        }]);
+
+    if (error) {
+        console.error('Supabase Insert Error:', error.message);
+        return res.status(500).json({ 
+            success: false, 
+            error: 'Could not save profile. Please try again.' 
+        });
+    }
+
+    // Return JSON for AJAX requests
+    return res.json({ 
+        success: true, 
+        message: 'Profile saved successfully. Waiting for approval.',
+        redirect: '/pending'
+    });
+});
 // Propose / Schedule Session Endpoint
 app.post('/api/schedule-session', async (req, res) => {
     const { requesterId, targetId, requesterRole, subject, durationHours, location, proposedTimes } = req.body;
