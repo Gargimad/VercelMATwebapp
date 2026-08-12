@@ -346,6 +346,7 @@ async function submitWithFallback(primaryEndpoint, fallbackEndpoint) {
     }
 }
 
+
 function showPendingStep() {
     console.log('Showing pending step');
     
