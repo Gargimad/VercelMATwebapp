@@ -22,7 +22,7 @@
         </div>
     </div>
 
-    <form id="onboardingForm" action="/submit-onboarding" method="POST">
+    <form id="onboardingForm" action="/submit-onboarding" method="POST" onsubmit="return false;">
         <input type="hidden" id="userId" name="userId" />
         <input type="hidden" name="role" id="roleInput" value="tutor" />
 
@@ -149,7 +149,7 @@
             
             <div class="button-group">
                 <button type="button" class="btn-secondary" onclick="prevStep(4, 3)">← Back</button>
-                <button type="submit" class="btn-primary">Complete Setup →</button>
+                <button type="button" class="btn-primary" onclick="submitOnboarding()">Complete Setup →</button>
             </div>
         </div>
     </form>

@@ -198,8 +198,13 @@ function submitOnboarding() {
         return;
     }
     
-    // Show loading state
+    // Prevent double submission
     const submitBtn = document.querySelector('#step4 .btn-primary');
+    if (submitBtn.disabled) {
+        return; // Already submitting
+    }
+    
+    // Show loading state
     const originalText = submitBtn.textContent;
     submitBtn.textContent = 'Submitting...';
     submitBtn.disabled = true;
@@ -213,6 +218,9 @@ function submitOnboarding() {
             .then(() => {
                 // Show pending approval step
                 showPendingStep();
+                // Re-enable button if needed
+                submitBtn.disabled = false;
+                submitBtn.textContent = originalText;
             })
             .catch((error) => {
                 console.error('Submission error:', error);
@@ -230,6 +238,8 @@ function submitOnboarding() {
             .then(() => {
                 // Show pending approval step
                 showPendingStep();
+                submitBtn.disabled = false;
+                submitBtn.textContent = originalText;
             })
             .catch((error) => {
                 console.error('Submission error:', error);
@@ -253,7 +263,6 @@ function submitOnboarding() {
             });
     }
 }
-
 // Try primary endpoint first, fallback to secondary if it fails
 async function submitWithFallback(primaryEndpoint, fallbackEndpoint) {
     try {
