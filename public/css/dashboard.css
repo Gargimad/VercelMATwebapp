@@ -1091,3 +1091,73 @@ input, textarea, select {
         grid-template-columns: repeat(3, 1fr);
     }
 }
+/* ===== BUTTON SIZE ADJUSTMENTS FOR MOBILE ===== */
+
+/* For tablets (768px and below) */
+@media screen and (max-width: 768px) {
+    /* Reduce button sizes */
+    .btn-dark-red {
+        padding: 8px 18px;
+        font-size: 12px;
+        border-radius: 8px;
+    }
+    
+    .btn-green,
+    .btn-red-outline,
+    .btn-blue {
+        padding: 6px 14px;
+        font-size: 11px;
+        border-radius: 8px;
+    }
+    
+    .quick-action-btn {
+        padding: 8px 16px;
+        font-size: 12px;
+        border-radius: 10px;
+    }
+    
+    .hamburger-btn {
+        padding: 6px 14px;
+        font-size: 14px;
+    }
+}
+
+/* For mobile phones (480px and below) */
+@media screen and (max-width: 480px) {
+    /* Even smaller buttons for phones */
+    .btn-dark-red {
+        padding: 6px 14px;
+        font-size: 11px;
+        border-radius: 6px;
+    }
+    
+    .btn-green,
+    .btn-red-outline,
+    .btn-blue {
+        padding: 5px 10px;
+        font-size: 10px;
+        border-radius: 6px;
+    }
+    
+    .quick-action-btn {
+        padding: 6px 12px;
+        font-size: 11px;
+        border-radius: 8px;
+        gap: 6px;
+    }
+    
+    .hamburger-btn {
+        padding: 5px 10px;
+        font-size: 12px;
+        gap: 5px;
+    }
+    
+    .hamburger-btn span {
+        font-size: 10px;
+    }
+    
+    .user-badge {
+        padding: 4px 10px;
+        font-size: 9px;
+    }
+}
