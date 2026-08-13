@@ -68,16 +68,10 @@ img {
     padding: 30px 0;
     box-sizing: border-box;
     flex-shrink: 0;
-    transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+    transition: transform 0.3s ease;
     z-index: 1000;
     box-shadow: 4px 0 40px rgba(0, 0, 0, 0.3);
     font-family: 'Outfit', sans-serif;
-}
-
-.sidebar.collapsed {
-    transform: translateX(-100%);
-    position: absolute;
-    height: 100%;
 }
 
 .sidebar-header-wrapper {
@@ -205,18 +199,18 @@ img {
     background: rgba(201, 169, 110, 0.15);
     border: 1px solid rgba(201, 169, 110, 0.3);
     color: var(--gold-light);
-    font-size: 18px;
-    padding: 10px 20px;
-    border-radius: 10px;
+    font-size: 14px;
+    padding: 8px 16px;
+    border-radius: 8px;
     cursor: pointer;
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 6px;
     font-weight: 500;
     transition: var(--transition);
     width: auto;
     font-family: 'Outfit', sans-serif;
-    letter-spacing: 0.5px;
+    letter-spacing: 0.3px;
 }
 
 .hamburger-btn:hover {
@@ -227,16 +221,16 @@ img {
 }
 
 .hamburger-btn span {
-    font-size: 15px;
+    font-size: 12px;
 }
 
 .user-badge {
     background: rgba(201, 169, 110, 0.2);
-    padding: 8px 24px;
-    border-radius: 25px;
-    font-size: 13px;
+    padding: 6px 16px;
+    border-radius: 20px;
+    font-size: 11px;
     font-weight: 500;
-    letter-spacing: 0.8px;
+    letter-spacing: 0.5px;
     font-family: 'Outfit', sans-serif;
     border: 1px solid rgba(201, 169, 110, 0.3);
 }
@@ -727,9 +721,9 @@ input, textarea, select {
     }
     
     .sidebar {
-        width: 100%;
-        max-width: 100%;
-        min-width: 100%;
+        width: 260px;
+        max-width: 260px;
+        min-width: 260px;
         position: fixed;
         top: 0;
         left: 0;
@@ -739,13 +733,8 @@ input, textarea, select {
         padding: 20px 0;
     }
     
-    .sidebar.active,
-    .sidebar:not(.collapsed) {
+    .sidebar.mobile-open {
         transform: translateX(0);
-    }
-    
-    .sidebar.collapsed {
-        transform: translateX(-100%);
     }
     
     .close-sidebar-btn {
@@ -758,126 +747,33 @@ input, textarea, select {
     }
     
     .navbar {
-        padding: 12px 20px;
-        flex-wrap: wrap;
-        gap: 10px;
-    }
-    
-    .hamburger-btn {
-        padding: 8px 16px;
-        font-size: 16px;
-    }
-    
-    .user-badge {
-        padding: 6px 16px;
-        font-size: 11px;
-    }
-    
-    .tab-content {
-        padding: 20px 15px;
-        animation: fadeInUp 0.5s ease;
-    }
-    
-    .welcome-title {
-        font-size: 32px;
-        margin-bottom: 25px;
-    }
-    
-    .stats-grid {
-        grid-template-columns: repeat(2, 1fr);
-        gap: 12px;
-        margin-bottom: 25px;
-    }
-    
-    .stat-card {
-        padding: 20px 15px;
-        border-radius: 15px;
-    }
-    
-    .stat-number {
-        font-size: 32px;
-    }
-    
-    .stat-label {
-        font-size: 11px;
-    }
-    
-    .quick-actions {
-        gap: 10px;
-        margin-bottom: 25px;
-    }
-    
-    .quick-action-btn {
-        padding: 10px 18px;
-        font-size: 13px;
-        flex: 1;
-        min-width: calc(50% - 10px);
-        justify-content: center;
-    }
-    
-    .square-cards-container {
-        grid-template-columns: repeat(2, 1fr);
-        gap: 15px;
-        margin-top: 20px;
-    }
-    
-    .card-square {
-        border-radius: 18px;
-        min-height: 150px;
-    }
-    
-    .card-button .button-title {
-        font-size: 18px;
-    }
-    
-    .card-button .button-subtitle {
-        font-size: 11px;
-    }
-    
-    .card-outlined {
-        padding: 20px;
-        border-radius: 15px;
-    }
-    
-    .card-outlined h3 {
-        font-size: 20px;
-        margin-bottom: 15px;
-    }
-    
-    .btn-dark-red {
-        padding: 10px 20px;
-        font-size: 13px;
-    }
-}
-
-/* Mobile Phones */
-@media screen and (max-width: 480px) {
-    .navbar {
         padding: 10px 15px;
+        flex-wrap: wrap;
+        gap: 8px;
     }
     
     .hamburger-btn {
-        padding: 6px 12px;
-        font-size: 14px;
-        gap: 6px;
+        padding: 5px 10px;
+        font-size: 12px;
+        gap: 4px;
     }
     
     .hamburger-btn span {
-        font-size: 12px;
+        font-size: 10px;
     }
     
     .user-badge {
-        padding: 5px 12px;
-        font-size: 10px;
-        letter-spacing: 0.3px;
+        padding: 4px 10px;
+        font-size: 9px;
     }
     
     .tab-content {
         padding: 15px 12px;
+        animation: fadeInUp 0.5s ease;
     }
     
     .welcome-title {
-        font-size: 26px;
+        font-size: 28px;
         margin-bottom: 20px;
     }
     
@@ -893,52 +789,54 @@ input, textarea, select {
     }
     
     .stat-number {
-        font-size: 26px;
+        font-size: 28px;
     }
     
     .stat-label {
-        font-size: 10px;
-        letter-spacing: 0.3px;
+        font-size: 9px;
     }
     
     .quick-actions {
-        gap: 8px;
+        gap: 6px;
         margin-bottom: 20px;
     }
     
     .quick-action-btn {
-        padding: 8px 14px;
-        font-size: 12px;
-        min-width: calc(50% - 8px);
-        border-radius: 10px;
+        padding: 6px 10px;
+        font-size: 11px;
+        gap: 5px;
+        border-radius: 8px;
+        flex: 1;
+        min-width: calc(50% - 6px);
+        justify-content: center;
     }
     
     .action-icon {
-        font-size: 16px;
+        font-size: 14px;
     }
     
     .square-cards-container {
-        grid-template-columns: 1fr;
-        gap: 12px;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 10px;
         margin-top: 15px;
     }
     
     .card-square {
-        min-height: 130px;
         border-radius: 15px;
+        min-height: 130px;
     }
     
     .card-button {
-        padding: 15px;
-        gap: 8px;
+        padding: 12px;
+        gap: 6px;
     }
     
     .card-button .button-title {
-        font-size: 18px;
+        font-size: 16px;
     }
     
     .card-button .button-subtitle {
-        font-size: 12px;
+        font-size: 10px;
     }
     
     .card-outlined {
@@ -951,19 +849,144 @@ input, textarea, select {
         margin-bottom: 12px;
     }
     
-    .btn-dark-red,
+    /* Smaller buttons on mobile */
+    .btn-dark-red {
+        padding: 5px 12px;
+        font-size: 11px;
+        border-radius: 6px;
+        min-height: 30px;
+    }
+    
     .btn-green,
     .btn-red-outline,
     .btn-blue {
-        padding: 8px 16px;
+        padding: 4px 8px;
+        font-size: 10px;
+        border-radius: 5px;
+        min-height: 28px;
+    }
+}
+
+/* Mobile Phones */
+@media screen and (max-width: 480px) {
+    .navbar {
+        padding: 8px 10px;
+    }
+    
+    .hamburger-btn {
+        padding: 4px 8px;
+        font-size: 11px;
+    }
+    
+    .hamburger-btn span {
+        font-size: 9px;
+    }
+    
+    .user-badge {
+        padding: 3px 8px;
+        font-size: 8px;
+    }
+    
+    .tab-content {
+        padding: 10px 8px;
+    }
+    
+    .welcome-title {
+        font-size: 24px;
+        margin-bottom: 15px;
+    }
+    
+    .stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 6px;
+        margin-bottom: 15px;
+    }
+    
+    .stat-card {
+        padding: 10px 8px;
+        border-radius: 10px;
+    }
+    
+    .stat-number {
+        font-size: 24px;
+    }
+    
+    .stat-label {
+        font-size: 8px;
+        letter-spacing: 0.2px;
+    }
+    
+    .quick-actions {
+        gap: 4px;
+        margin-bottom: 15px;
+    }
+    
+    .quick-action-btn {
+        padding: 4px 8px;
+        font-size: 10px;
+        border-radius: 6px;
+        min-width: calc(50% - 4px);
+    }
+    
+    .action-icon {
         font-size: 12px;
-        border-radius: 8px;
+    }
+    
+    .square-cards-container {
+        grid-template-columns: 1fr;
+        gap: 8px;
+        margin-top: 10px;
+    }
+    
+    .card-square {
+        min-height: 110px;
+        border-radius: 12px;
+    }
+    
+    .card-button {
+        padding: 10px;
+        gap: 5px;
+    }
+    
+    .card-button .button-title {
+        font-size: 15px;
+    }
+    
+    .card-button .button-subtitle {
+        font-size: 9px;
+    }
+    
+    .card-outlined {
+        padding: 10px;
+        border-radius: 10px;
+    }
+    
+    .card-outlined h3 {
+        font-size: 16px;
+        margin-bottom: 10px;
+    }
+    
+    /* Even smaller buttons on phones */
+    .btn-dark-red {
+        padding: 3px 8px;
+        font-size: 9px;
+        border-radius: 4px;
+        min-height: 24px;
+    }
+    
+    .btn-green,
+    .btn-red-outline,
+    .btn-blue {
+        padding: 2px 6px;
+        font-size: 8px;
+        border-radius: 4px;
+        min-height: 22px;
     }
     
     /* Improve form elements on mobile */
     input, select, textarea {
-        font-size: 16px !important; /* Prevents iOS zoom on focus */
-        padding: 10px;
+        font-size: 16px !important;
+        padding: 8px;
     }
 }
 
@@ -974,11 +997,11 @@ input, textarea, select {
     }
     
     .stat-card {
-        padding: 12px;
+        padding: 8px;
     }
     
     .stat-number {
-        font-size: 24px;
+        font-size: 20px;
     }
     
     .quick-action-btn {
@@ -986,12 +1009,12 @@ input, textarea, select {
     }
     
     .welcome-title {
-        font-size: 22px;
+        font-size: 20px;
     }
     
     .user-badge {
-        font-size: 9px;
-        padding: 4px 10px;
+        font-size: 7px;
+        padding: 2px 6px;
     }
 }
 
@@ -1034,51 +1057,6 @@ input, textarea, select {
     }
 }
 
-/* Touch-friendly improvements for mobile devices */
-@media (hover: none) and (pointer: coarse) {
-    /* Increase touch targets on mobile */
-    button, 
-    .btn-dark-red,
-    .btn-green,
-    .btn-red-outline,
-    .btn-blue,
-    .quick-action-btn,
-    .sidebar-link {
-        min-height: 44px;
-        min-width: 44px;
-        cursor: pointer;
-        touch-action: manipulation;
-    }
-    
-    /* Remove hover effects on mobile */
-    .card-square:hover {
-        transform: none;
-    }
-    
-    .card-square:hover .card-image {
-        transform: scale(1);
-        opacity: 0.6;
-    }
-    
-    .card-square:hover .card-overlay {
-        background: linear-gradient(135deg, 
-            rgba(26, 26, 46, 0.9), 
-            rgba(22, 33, 62, 0.8));
-    }
-    
-    .quick-action-btn:hover {
-        background: var(--white);
-        color: var(--charcoal);
-        transform: none;
-        box-shadow: var(--shadow-sm);
-    }
-    
-    .stat-card:hover {
-        transform: none;
-        box-shadow: var(--shadow-sm);
-    }
-}
-
 /* Session grid responsive */
 @media screen and (min-width: 640px) {
     .session-grid {
@@ -1089,75 +1067,5 @@ input, textarea, select {
 @media screen and (min-width: 1024px) {
     .session-grid {
         grid-template-columns: repeat(3, 1fr);
-    }
-}
-/* ===== BUTTON SIZE ADJUSTMENTS FOR MOBILE ===== */
-
-/* For tablets (768px and below) */
-@media screen and (max-width: 768px) {
-    /* Reduce button sizes */
-    .btn-dark-red {
-        padding: 8px 18px;
-        font-size: 12px;
-        border-radius: 8px;
-    }
-    
-    .btn-green,
-    .btn-red-outline,
-    .btn-blue {
-        padding: 6px 14px;
-        font-size: 11px;
-        border-radius: 8px;
-    }
-    
-    .quick-action-btn {
-        padding: 8px 16px;
-        font-size: 12px;
-        border-radius: 10px;
-    }
-    
-    .hamburger-btn {
-        padding: 6px 14px;
-        font-size: 14px;
-    }
-}
-
-/* For mobile phones (480px and below) */
-@media screen and (max-width: 480px) {
-    /* Even smaller buttons for phones */
-    .btn-dark-red {
-        padding: 6px 14px;
-        font-size: 11px;
-        border-radius: 6px;
-    }
-    
-    .btn-green,
-    .btn-red-outline,
-    .btn-blue {
-        padding: 5px 10px;
-        font-size: 10px;
-        border-radius: 6px;
-    }
-    
-    .quick-action-btn {
-        padding: 6px 12px;
-        font-size: 11px;
-        border-radius: 8px;
-        gap: 6px;
-    }
-    
-    .hamburger-btn {
-        padding: 5px 10px;
-        font-size: 12px;
-        gap: 5px;
-    }
-    
-    .hamburger-btn span {
-        font-size: 10px;
-    }
-    
-    .user-badge {
-        padding: 4px 10px;
-        font-size: 9px;
     }
 }
