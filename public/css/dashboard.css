@@ -824,6 +824,7 @@ input, textarea, select {
     .card-square {
         border-radius: 15px;
         min-height: 130px;
+        aspect-ratio: auto;
     }
     
     .card-button {
@@ -850,7 +851,8 @@ input, textarea, select {
     }
     
     /* Smaller buttons on mobile */
-    .btn-dark-red {
+    .btn-dark-red,
+    .btn-blue {
         padding: 5px 12px;
         font-size: 11px;
         border-radius: 6px;
@@ -858,8 +860,7 @@ input, textarea, select {
     }
     
     .btn-green,
-    .btn-red-outline,
-    .btn-blue {
+    .btn-red-outline {
         padding: 4px 8px;
         font-size: 10px;
         border-radius: 5px;
@@ -941,6 +942,7 @@ input, textarea, select {
     .card-square {
         min-height: 110px;
         border-radius: 12px;
+        aspect-ratio: auto;
     }
     
     .card-button {
@@ -966,8 +968,9 @@ input, textarea, select {
         margin-bottom: 10px;
     }
     
-    /* Even smaller buttons on phones */
-    .btn-dark-red {
+    /* Even smaller buttons on phones - specifically dark blue buttons */
+    .btn-dark-red,
+    .btn-blue {
         padding: 3px 8px;
         font-size: 9px;
         border-radius: 4px;
@@ -975,8 +978,7 @@ input, textarea, select {
     }
     
     .btn-green,
-    .btn-red-outline,
-    .btn-blue {
+    .btn-red-outline {
         padding: 2px 6px;
         font-size: 8px;
         border-radius: 4px;
@@ -1016,6 +1018,15 @@ input, textarea, select {
         font-size: 7px;
         padding: 2px 6px;
     }
+    
+    /* Tiny dark blue buttons */
+    .btn-dark-red,
+    .btn-blue {
+        padding: 2px 6px;
+        font-size: 8px;
+        border-radius: 3px;
+        min-height: 20px;
+    }
 }
 
 /* Landscape Mode for Mobile */
@@ -1054,6 +1065,14 @@ input, textarea, select {
     
     .stat-number {
         font-size: 22px;
+    }
+    
+    /* Landscape dark blue buttons */
+    .btn-dark-red,
+    .btn-blue {
+        padding: 3px 10px;
+        font-size: 9px;
+        min-height: 25px;
     }
 }
 
