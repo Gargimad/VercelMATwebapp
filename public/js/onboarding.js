@@ -210,63 +210,52 @@ function submitOnboarding() {
     submitBtn.textContent = 'Submitting...';
     submitBtn.disabled = true;
     
-    // Determine the endpoint and status based on role
-    let endpoint = '/submit-onboarding';
-    let status = 'active';
+    // Build form data manually
+    const formData = {
+        userId: document.getElementById('userId').value,
+        username: username,
+        role: role,
+        grade: document.getElementById('gradeSelect')?.value || '',
+        subject: document.getElementById('subjectSelect')?.value || '',
+        status: (role === 'admin') ? 'active' : 'pending'
+    };
     
-    if (role === 'tutor' || role === 'tutee') {
-        status = 'pending';
-        endpoint = '/submit-onboarding-pending';
-    }
+    // Determine endpoint
+    const endpoint = (role === 'tutor' || role === 'tutee') 
+        ? '/submit-onboarding-pending' 
+        : '/submit-onboarding';
     
-    // Set the status
-    document.getElementById('statusInput').value = status;
+    console.log('Submitting form data:', formData);
     
-    // Submit the form
-    submitFormData(endpoint)
-        .then((response) => {
-            console.log('Submission successful:', response);
-            
-            // Reset button
-            submitBtn.textContent = originalText;
-            submitBtn.disabled = false;
-            
-            // Handle success based on role
-            if (role === 'tutor' || role === 'tutee') {
-                showPendingStep();
-            } else {
-                window.location.href = '/dashboard';
-            }
-        })
-        .catch((error) => {
-            console.error('Submission error:', error);
-            
-            // Try fallback if primary endpoint failed
-            if (endpoint === '/submit-onboarding-pending') {
-                console.log('Trying fallback endpoint...');
-                
-                // Try the regular endpoint as fallback
-                document.getElementById('statusInput').value = 'pending';
-                submitFormData('/submit-onboarding')
-                    .then((response) => {
-                        console.log('Fallback submission successful:', response);
-                        submitBtn.textContent = originalText;
-                        submitBtn.disabled = false;
-                        showPendingStep();
-                    })
-                    .catch((fallbackError) => {
-                        console.error('Fallback also failed:', fallbackError);
-                        submitBtn.textContent = originalText;
-                        submitBtn.disabled = false;
-                        alert('Could not save profile. Please try again.\n\nError: ' + fallbackError.message);
-                    });
-            } else {
-                // Non-pending role or both endpoints failed
-                submitBtn.textContent = originalText;
-                submitBtn.disabled = false;
-                alert('Could not save profile. Please try again.\n\nError: ' + error.message);
-            }
-        });
+    // Submit directly
+    fetch(endpoint, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-Requested-With': 'XMLHttpRequest'
+        },
+        body: JSON.stringify(formData)
+    })
+    .then(response => response.json())
+    .then(data => {
+        console.log('Submission successful:', data);
+        submitBtn.textContent = originalText;
+        submitBtn.disabled = false;
+        
+        if (role === 'tutor' || role === 'tutee') {
+            showPendingStep();
+        } else if (role === 'admin') {
+            window.location.href = '/admin?id=' + formData.userId;
+        } else {
+            window.location.href = '/dashboard';
+        }
+    })
+    .catch(error => {
+        console.error('Submission error:', error);
+        submitBtn.textContent = originalText;
+        submitBtn.disabled = false;
+        alert('Could not save profile. Please try again.\n\nError: ' + error.message);
+    });
 }
 
 // Update submitFormData to handle errors better

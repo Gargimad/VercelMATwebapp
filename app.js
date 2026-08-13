@@ -101,7 +101,10 @@ app.get('/auth/verify', async (req, res) => {
 
 // Submit Onboarding Form Route
 // Submit Onboarding Form Route - FIXED VERSION
-app.post('/submit-onboarding', async (req, res) => {
+// In app.js - Update /submit-onboarding endpoint
+
+// Update /submit-onboarding-pending endpoint
+app.post('/submit-onboarding-pending', async (req, res) => {
     const { userId, username, role, grade, subject } = req.body;
 
     if (!userId || !username || !role || !grade || !subject) {
@@ -111,47 +114,34 @@ app.post('/submit-onboarding', async (req, res) => {
         });
     }
 
-    const accountStatus = (role === 'admin') ? 'active' : 'pending';
-
-    const { error } = await supabaseAdmin
+    // Use upsert instead of insert
+    const { data, error } = await supabaseAdmin
         .from('users')
-        .insert([{ 
+        .upsert([{ 
             id: userId, 
             username, 
             role, 
             grade, 
             subject, 
-            status: accountStatus 
-        }]);
+            status: 'pending' 
+        }], { 
+            onConflict: 'id',
+            ignoreDuplicates: false // This will update existing records
+        });
 
     if (error) {
-        console.error('Supabase Insert Error:', error.message);
+        console.error('Supabase Upsert Error:', error.message);
         return res.status(500).json({ 
             success: false, 
             error: 'Could not save profile. Please try again.' 
         });
     }
 
-    // Check if it's an AJAX request
-    const isAjax = req.headers['x-requested-with'] === 'XMLHttpRequest' || 
-                   req.headers['accept'] === 'application/json';
-
-    if (isAjax) {
-        // Return JSON for AJAX requests
-        return res.json({ 
-            success: true, 
-            message: 'Profile saved successfully',
-            role: role,
-            redirect: role === 'admin' ? `/admin?id=${userId}` : '/pending'
-        });
-    } else {
-        // Redirect for regular form submissions
-        if (role === 'admin') {
-            res.redirect(`/admin?id=${userId}`);
-        } else {
-            res.redirect('/pending');
-        }
-    }
+    return res.json({ 
+        success: true, 
+        message: 'Profile saved successfully. Waiting for approval.',
+        redirect: '/pending'
+    });
 });
 // =========================================================================
 // STUDENT / TUTOR ROUTES
