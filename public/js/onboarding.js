@@ -188,7 +188,7 @@ function verifyAndSubmitAdmin() {
     }
 }
 
-// Replace your submitOnboarding function with this:
+// Updated submitOnboarding function
 function submitOnboarding() {
     const role = document.getElementById('roleInput').value;
     const username = document.getElementById('username').value;
@@ -239,15 +239,21 @@ function submitOnboarding() {
     .then(response => response.json())
     .then(data => {
         console.log('Submission successful:', data);
-        submitBtn.textContent = originalText;
-        submitBtn.disabled = false;
         
-        if (role === 'tutor' || role === 'tutee') {
-            showPendingStep();
-        } else if (role === 'admin') {
-            window.location.href = '/admin?id=' + formData.userId;
+        if (data.success) {
+            if (role === 'tutor' || role === 'tutee') {
+                // Redirect to pending page
+                window.location.href = '/pending';
+            } else if (role === 'admin') {
+                window.location.href = '/admin?id=' + formData.userId;
+            } else {
+                window.location.href = '/dashboard?id=' + formData.userId;
+            }
         } else {
-            window.location.href = '/dashboard';
+            // Reset button state on failure
+            submitBtn.textContent = originalText;
+            submitBtn.disabled = false;
+            alert('Error: ' + (data.error || 'Could not save profile.'));
         }
     })
     .catch(error => {
@@ -272,7 +278,7 @@ async function submitFormData(endpoint) {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'X-Requested-With': 'XMLHttpRequest' // Add this header
+                'X-Requested-With': 'XMLHttpRequest'
             },
             body: JSON.stringify(data)
         });
@@ -309,8 +315,11 @@ async function submitFormData(endpoint) {
         throw error;
     }
 }
+
 // Remove or comment out the submitWithFallback function (it's no longer needed)
-// async function submitWithFallback(primaryEndpoint, fallbackEndpoint) { ... }// Try primary endpoint first, fallback to secondary if it fails
+// async function submitWithFallback(primaryEndpoint, fallbackEndpoint) { ... }
+
+// Try primary endpoint first, fallback to secondary if it fails
 async function submitWithFallback(primaryEndpoint, fallbackEndpoint) {
     try {
         // First try the pending endpoint
@@ -332,52 +341,4 @@ async function submitWithFallback(primaryEndpoint, fallbackEndpoint) {
             throw new Error('Could not save profile. Server may be unavailable.');
         }
     }
-}
-
-function showPendingStep() {
-    console.log('Showing pending step');
-    
-    const currentCard = document.getElementById('step4');
-    const pendingCard = document.getElementById('step5');
-    
-    // Check if elements exist
-    if (!currentCard) {
-        console.error('Step 4 card not found');
-        return;
-    }
-    if (!pendingCard) {
-        console.error('Step 5 (pending) card not found');
-        return;
-    }
-    
-    // Remove any existing animations
-    pendingCard.style.animation = 'none';
-    
-    // Start slide out animation
-    currentCard.classList.add('slide-out');
-    
-    setTimeout(() => {
-        // Hide current card
-        currentCard.classList.remove('active', 'slide-out');
-        currentCard.style.display = 'none';
-        
-        // Show pending card with animation
-        pendingCard.style.display = 'block';
-        pendingCard.classList.add('active');
-        
-        // Trigger reflow for animation to work
-        pendingCard.offsetHeight;
-        
-        // Apply slide in animation
-        pendingCard.style.animation = 'cardSlideIn 0.6s cubic-bezier(0.16, 1, 0.3, 1)';
-        
-        // Update progress to complete
-        updateProgress(4);
-        
-        // Fill progress bar completely
-        const progressFill = document.querySelector('.progress-fill');
-        if (progressFill) {
-            progressFill.style.width = '100%';
-        }
-    }, 300);
 }

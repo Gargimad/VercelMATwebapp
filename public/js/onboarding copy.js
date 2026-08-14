@@ -210,63 +210,52 @@ function submitOnboarding() {
     submitBtn.textContent = 'Submitting...';
     submitBtn.disabled = true;
     
-    // Determine the endpoint and status based on role
-    let endpoint = '/submit-onboarding';
-    let status = 'active';
+    // Build form data manually
+    const formData = {
+        userId: document.getElementById('userId').value,
+        username: username,
+        role: role,
+        grade: document.getElementById('gradeSelect')?.value || '',
+        subject: document.getElementById('subjectSelect')?.value || '',
+        status: (role === 'admin') ? 'active' : 'pending'
+    };
     
-    if (role === 'tutor' || role === 'tutee') {
-        status = 'pending';
-        endpoint = '/submit-onboarding-pending';
-    }
+    // Determine endpoint
+    const endpoint = (role === 'tutor' || role === 'tutee') 
+        ? '/submit-onboarding-pending' 
+        : '/submit-onboarding';
     
-    // Set the status
-    document.getElementById('statusInput').value = status;
+    console.log('Submitting form data:', formData);
     
-    // Submit the form
-    submitFormData(endpoint)
-        .then((response) => {
-            console.log('Submission successful:', response);
-            
-            // Reset button
-            submitBtn.textContent = originalText;
-            submitBtn.disabled = false;
-            
-            // Handle success based on role
-            if (role === 'tutor' || role === 'tutee') {
-                showPendingStep();
-            } else {
-                window.location.href = '/dashboard';
-            }
-        })
-        .catch((error) => {
-            console.error('Submission error:', error);
-            
-            // Try fallback if primary endpoint failed
-            if (endpoint === '/submit-onboarding-pending') {
-                console.log('Trying fallback endpoint...');
-                
-                // Try the regular endpoint as fallback
-                document.getElementById('statusInput').value = 'pending';
-                submitFormData('/submit-onboarding')
-                    .then((response) => {
-                        console.log('Fallback submission successful:', response);
-                        submitBtn.textContent = originalText;
-                        submitBtn.disabled = false;
-                        showPendingStep();
-                    })
-                    .catch((fallbackError) => {
-                        console.error('Fallback also failed:', fallbackError);
-                        submitBtn.textContent = originalText;
-                        submitBtn.disabled = false;
-                        alert('Could not save profile. Please try again.\n\nError: ' + fallbackError.message);
-                    });
-            } else {
-                // Non-pending role or both endpoints failed
-                submitBtn.textContent = originalText;
-                submitBtn.disabled = false;
-                alert('Could not save profile. Please try again.\n\nError: ' + error.message);
-            }
-        });
+    // Submit directly
+    fetch(endpoint, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-Requested-With': 'XMLHttpRequest'
+        },
+        body: JSON.stringify(formData)
+    })
+    .then(response => response.json())
+    .then(data => {
+        console.log('Submission successful:', data);
+        submitBtn.textContent = originalText;
+        submitBtn.disabled = false;
+        
+        if (role === 'tutor' || role === 'tutee') {
+            showPendingStep();
+        } else if (role === 'admin') {
+            window.location.href = '/admin?id=' + formData.userId;
+        } else {
+            window.location.href = '/dashboard';
+        }
+    })
+    .catch(error => {
+        console.error('Submission error:', error);
+        submitBtn.textContent = originalText;
+        submitBtn.disabled = false;
+        alert('Could not save profile. Please try again.\n\nError: ' + error.message);
+    });
 }
 
 // Update submitFormData to handle errors better
@@ -275,7 +264,6 @@ async function submitFormData(endpoint) {
     const formData = new FormData(form);
     const data = Object.fromEntries(formData.entries());
     
-    // Log what we're sending for debugging
     console.log('Submitting to:', endpoint);
     console.log('Data being sent:', data);
     
@@ -284,6 +272,7 @@ async function submitFormData(endpoint) {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest' // Add this header
             },
             body: JSON.stringify(data)
         });
@@ -299,12 +288,12 @@ async function submitFormData(endpoint) {
         try {
             responseData = JSON.parse(responseText);
         } catch (e) {
-            console.log('Response is not JSON, using text');
-            responseData = { message: responseText };
+            console.error('Failed to parse JSON:', e);
+            throw new Error('Server returned invalid response format');
         }
         
-        if (!response.ok) {
-            throw new Error(responseData.message || responseData.error || `Server error: ${response.status}`);
+        if (!response.ok || !responseData.success) {
+            throw new Error(responseData.error || responseData.message || `Server error: ${response.status}`);
         }
         
         return responseData;
@@ -320,7 +309,6 @@ async function submitFormData(endpoint) {
         throw error;
     }
 }
-
 // Remove or comment out the submitWithFallback function (it's no longer needed)
 // async function submitWithFallback(primaryEndpoint, fallbackEndpoint) { ... }// Try primary endpoint first, fallback to secondary if it fails
 async function submitWithFallback(primaryEndpoint, fallbackEndpoint) {
@@ -343,58 +331,6 @@ async function submitWithFallback(primaryEndpoint, fallbackEndpoint) {
             console.error('Both endpoints failed');
             throw new Error('Could not save profile. Server may be unavailable.');
         }
-    }
-}
-
-async function submitFormData(endpoint) {
-    const form = document.getElementById('onboardingForm');
-    const formData = new FormData(form);
-    const data = Object.fromEntries(formData.entries());
-    
-    // Log what we're sending for debugging
-    console.log('Submitting to:', endpoint);
-    console.log('Data being sent:', data);
-    
-    try {
-        const response = await fetch(endpoint, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(data)
-        });
-        
-        console.log('Response status:', response.status);
-        console.log('Response ok:', response.ok);
-        
-        // Get the response text first
-        const responseText = await response.text();
-        console.log('Response text:', responseText);
-        
-        // Try to parse as JSON
-        let responseData;
-        try {
-            responseData = JSON.parse(responseText);
-        } catch (e) {
-            console.log('Response is not JSON, using text');
-            responseData = { message: responseText };
-        }
-        
-        if (!response.ok) {
-            throw new Error(responseData.message || responseData.error || `Server error: ${response.status}`);
-        }
-        
-        return responseData;
-        
-    } catch (error) {
-        console.error('Fetch error:', error);
-        
-        // Check if it's a network error
-        if (error.name === 'TypeError' && error.message === 'Failed to fetch') {
-            throw new Error('Network error - please check your connection and try again.');
-        }
-        
-        throw error;
     }
 }
 
