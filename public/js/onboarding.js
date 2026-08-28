@@ -330,7 +330,6 @@ async function submitWithFallback(primaryEndpoint, fallbackEndpoint) {
     } catch (primaryError) {
         console.warn('Primary endpoint failed:', primaryError.message);
         console.log('Falling back to:', fallbackEndpoint);
-        
         try {
             // Fallback to regular endpoint with pending status
             const result = await submitFormData(fallbackEndpoint);

@@ -21,6 +21,19 @@
 }
 
 /* ===== BASE STYLES ===== */
+* {
+    -webkit-box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    box-sizing: border-box;
+}
+
+html {
+    scroll-behavior: smooth;
+    -webkit-tap-highlight-color: transparent;
+    -webkit-text-size-adjust: 100%;
+    -ms-text-size-adjust: 100%;
+}
+
 body {
     margin: 0;
     padding: 0;
@@ -34,6 +47,11 @@ body {
     -moz-osx-font-smoothing: grayscale;
     letter-spacing: -0.01em;
     line-height: 1.6;
+}
+
+img {
+    max-width: 100%;
+    height: auto;
 }
 
 /* ===== SIDEBAR ===== */
@@ -50,16 +68,10 @@ body {
     padding: 30px 0;
     box-sizing: border-box;
     flex-shrink: 0;
-    transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+    transition: transform 0.3s ease;
     z-index: 1000;
     box-shadow: 4px 0 40px rgba(0, 0, 0, 0.3);
     font-family: 'Outfit', sans-serif;
-}
-
-.sidebar.collapsed {
-    transform: translateX(-100%);
-    position: absolute;
-    height: 100%;
 }
 
 .sidebar-header-wrapper {
@@ -178,24 +190,27 @@ body {
     align-items: center;
     box-shadow: 0 4px 30px rgba(0, 0, 0, 0.2);
     border-bottom: 1px solid rgba(201, 169, 110, 0.3);
+    position: sticky;
+    top: 0;
+    z-index: 999;
 }
 
 .hamburger-btn {
     background: rgba(201, 169, 110, 0.15);
     border: 1px solid rgba(201, 169, 110, 0.3);
     color: var(--gold-light);
-    font-size: 18px;
-    padding: 10px 20px;
-    border-radius: 10px;
+    font-size: 14px;
+    padding: 8px 16px;
+    border-radius: 8px;
     cursor: pointer;
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 6px;
     font-weight: 500;
     transition: var(--transition);
     width: auto;
     font-family: 'Outfit', sans-serif;
-    letter-spacing: 0.5px;
+    letter-spacing: 0.3px;
 }
 
 .hamburger-btn:hover {
@@ -206,16 +221,16 @@ body {
 }
 
 .hamburger-btn span {
-    font-size: 15px;
+    font-size: 12px;
 }
 
 .user-badge {
     background: rgba(201, 169, 110, 0.2);
-    padding: 8px 24px;
-    border-radius: 25px;
-    font-size: 13px;
+    padding: 6px 16px;
+    border-radius: 20px;
+    font-size: 11px;
     font-weight: 500;
-    letter-spacing: 0.8px;
+    letter-spacing: 0.5px;
     font-family: 'Outfit', sans-serif;
     border: 1px solid rgba(201, 169, 110, 0.3);
 }
@@ -645,4 +660,431 @@ p, span, div, button, input, select, textarea, a {
     letter-spacing: -0.01em;
 }
 
-/* Rest of your CSS with updated colors and typography... */
+/* Form elements fix for iOS */
+input, textarea, select {
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    border-radius: 8px;
+}
+
+/* Responsive tables */
+.table-responsive {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+/* Form groups spacing */
+.form-group {
+    margin-bottom: 15px;
+}
+
+/* Session grid */
+.session-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 15px;
+}
+
+/* ===== RESPONSIVE DESIGN FOR MOBILE ===== */
+
+/* Large Tablets and Small Laptops */
+@media screen and (max-width: 1024px) {
+    .tab-content {
+        padding: 30px 30px;
+    }
+    
+    .welcome-title {
+        font-size: 38px;
+    }
+    
+    .stats-grid {
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 15px;
+    }
+    
+    .square-cards-container {
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        gap: 20px;
+    }
+    
+    .navbar {
+        padding: 14px 25px;
+    }
+}
+
+/* Tablets */
+@media screen and (max-width: 768px) {
+    body {
+        flex-direction: column;
+        overflow-x: hidden;
+    }
+    
+    .sidebar {
+        width: 260px;
+        max-width: 260px;
+        min-width: 260px;
+        position: fixed;
+        top: 0;
+        left: 0;
+        height: 100vh;
+        transform: translateX(-100%);
+        z-index: 1000;
+        padding: 20px 0;
+    }
+    
+    .sidebar.mobile-open {
+        transform: translateX(0);
+    }
+    
+    .close-sidebar-btn {
+        display: block;
+    }
+    
+    .main-wrapper {
+        width: 100%;
+        margin-left: 0;
+    }
+    
+    .navbar {
+        padding: 10px 15px;
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+    
+    .hamburger-btn {
+        padding: 5px 10px;
+        font-size: 12px;
+        gap: 4px;
+    }
+    
+    .hamburger-btn span {
+        font-size: 10px;
+    }
+    
+    .user-badge {
+        padding: 4px 10px;
+        font-size: 9px;
+    }
+    
+    .tab-content {
+        padding: 15px 12px;
+        animation: fadeInUp 0.5s ease;
+    }
+    
+    .welcome-title {
+        font-size: 28px;
+        margin-bottom: 20px;
+    }
+    
+    .stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 8px;
+        margin-bottom: 20px;
+    }
+    
+    .stat-card {
+        padding: 15px 10px;
+        border-radius: 12px;
+    }
+    
+    .stat-number {
+        font-size: 28px;
+    }
+    
+    .stat-label {
+        font-size: 9px;
+    }
+    
+    .quick-actions {
+        gap: 6px;
+        margin-bottom: 20px;
+    }
+    
+    .quick-action-btn {
+        padding: 6px 10px;
+        font-size: 11px;
+        gap: 5px;
+        border-radius: 8px;
+        flex: 1;
+        min-width: calc(50% - 6px);
+        justify-content: center;
+    }
+    
+    .action-icon {
+        font-size: 14px;
+    }
+    
+    .square-cards-container {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 10px;
+        margin-top: 15px;
+    }
+    
+    .card-square {
+        border-radius: 15px;
+        min-height: 130px;
+        aspect-ratio: auto;
+    }
+    
+    .card-button {
+        padding: 12px;
+        gap: 6px;
+    }
+    
+    .card-button .button-title {
+        font-size: 16px;
+    }
+    
+    .card-button .button-subtitle {
+        font-size: 10px;
+    }
+    
+    .card-outlined {
+        padding: 15px;
+        border-radius: 12px;
+    }
+    
+    .card-outlined h3 {
+        font-size: 18px;
+        margin-bottom: 12px;
+    }
+    
+    /* Smaller buttons on mobile */
+    .btn-dark-red,
+    .btn-blue {
+        padding: 5px 12px;
+        font-size: 11px;
+        border-radius: 6px;
+        min-height: 30px;
+    }
+    
+    .btn-green,
+    .btn-red-outline {
+        padding: 4px 8px;
+        font-size: 10px;
+        border-radius: 5px;
+        min-height: 28px;
+    }
+}
+
+/* Mobile Phones */
+@media screen and (max-width: 480px) {
+    .navbar {
+        padding: 8px 10px;
+    }
+    
+    .hamburger-btn {
+        padding: 4px 8px;
+        font-size: 11px;
+    }
+    
+    .hamburger-btn span {
+        font-size: 9px;
+    }
+    
+    .user-badge {
+        padding: 3px 8px;
+        font-size: 8px;
+    }
+    
+    .tab-content {
+        padding: 10px 8px;
+    }
+    
+    .welcome-title {
+        font-size: 24px;
+        margin-bottom: 15px;
+    }
+    
+    .stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 6px;
+        margin-bottom: 15px;
+    }
+    
+    .stat-card {
+        padding: 10px 8px;
+        border-radius: 10px;
+    }
+    
+    .stat-number {
+        font-size: 24px;
+    }
+    
+    .stat-label {
+        font-size: 8px;
+        letter-spacing: 0.2px;
+    }
+    
+    .quick-actions {
+        gap: 4px;
+        margin-bottom: 15px;
+    }
+    
+    .quick-action-btn {
+        padding: 4px 8px;
+        font-size: 10px;
+        border-radius: 6px;
+        min-width: calc(50% - 4px);
+    }
+    
+    .action-icon {
+        font-size: 12px;
+    }
+    
+    .square-cards-container {
+        grid-template-columns: 1fr;
+        gap: 8px;
+        margin-top: 10px;
+    }
+    
+    .card-square {
+        min-height: 110px;
+        border-radius: 12px;
+        aspect-ratio: auto;
+    }
+    
+    .card-button {
+        padding: 10px;
+        gap: 5px;
+    }
+    
+    .card-button .button-title {
+        font-size: 15px;
+    }
+    
+    .card-button .button-subtitle {
+        font-size: 9px;
+    }
+    
+    .card-outlined {
+        padding: 10px;
+        border-radius: 10px;
+    }
+    
+    .card-outlined h3 {
+        font-size: 16px;
+        margin-bottom: 10px;
+    }
+    
+    /* Even smaller buttons on phones - specifically dark blue buttons */
+    .btn-dark-red,
+    .btn-blue {
+        padding: 3px 8px;
+        font-size: 9px;
+        border-radius: 4px;
+        min-height: 24px;
+    }
+    
+    .btn-green,
+    .btn-red-outline {
+        padding: 2px 6px;
+        font-size: 8px;
+        border-radius: 4px;
+        min-height: 22px;
+    }
+    
+    /* Improve form elements on mobile */
+    input, select, textarea {
+        font-size: 16px !important;
+        padding: 8px;
+    }
+}
+
+/* Small Mobile Phones */
+@media screen and (max-width: 360px) {
+    .stats-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .stat-card {
+        padding: 8px;
+    }
+    
+    .stat-number {
+        font-size: 20px;
+    }
+    
+    .quick-action-btn {
+        min-width: 100%;
+    }
+    
+    .welcome-title {
+        font-size: 20px;
+    }
+    
+    .user-badge {
+        font-size: 7px;
+        padding: 2px 6px;
+    }
+    
+    /* Tiny dark blue buttons */
+    .btn-dark-red,
+    .btn-blue {
+        padding: 2px 6px;
+        font-size: 8px;
+        border-radius: 3px;
+        min-height: 20px;
+    }
+}
+
+/* Landscape Mode for Mobile */
+@media screen and (max-height: 500px) and (orientation: landscape) {
+    .sidebar {
+        width: 200px;
+        padding: 15px 0;
+    }
+    
+    .sidebar-brand {
+        font-size: 16px;
+    }
+    
+    .sidebar-link {
+        padding: 8px 15px;
+        font-size: 12px;
+    }
+    
+    .tab-content {
+        padding: 15px;
+    }
+    
+    .welcome-title {
+        font-size: 24px;
+        margin-bottom: 15px;
+    }
+    
+    .stats-grid {
+        grid-template-columns: repeat(4, 1fr);
+        gap: 8px;
+    }
+    
+    .stat-card {
+        padding: 10px;
+    }
+    
+    .stat-number {
+        font-size: 22px;
+    }
+    
+    /* Landscape dark blue buttons */
+    .btn-dark-red,
+    .btn-blue {
+        padding: 3px 10px;
+        font-size: 9px;
+        min-height: 25px;
+    }
+}
+
+/* Session grid responsive */
+@media screen and (min-width: 640px) {
+    .session-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media screen and (min-width: 1024px) {
+    .session-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
