@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tutor Connect Create Group</title>
+  
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Luxurious+Roman&family=Sail&display=swap" rel="stylesheet">  
+  <link rel="stylesheet" href="css/landing.css">
+</head>
+<body>
+
+  <!-- Top Full-Width Navigation -->
+  <header class="navBar">
+    <a href="landing.html">
+      <img src="images/logo.png" alt="TutorConnect Logo" class="brand-logo-img">
+    </a>
+    <nav class="nav-links">
+      <a href="onboarding.html" class="navLink">Join Group</a>
+      <a href="startGroup.html" class="navLink">Start Group</a>
+    </nav>
+  </header>
+
+  <main class="join-section">
+    <div class="join-content">
+        <h1>Welcome to Tutor Connect!</h1>
+        <h3 class="join-prompt">Let's get you set up</h3>
+        <div class = "join-form">
+            <label id="groupName">What is your group name?</label>
+            <input type = "text" id="groupName" name="groupName" placeholder="Mrs.Smith's Math Club" required>
+            <label id="groupDescription">What does your group do?</label>
+            <input type = "text" id="groupDescription" name="groupDescription" placeholder="This club meets everyday after school for tutoring" required>
+            <label id="adminContact">What is your contact information? (Email/Phone Number)</label>
+            <input type = "text" id="adminContact" name="adminContact" placeholder="janeausten@gmail.com" required>
+            <label id="groupTutorRoster">Do you already have tutors in your group?</label>
+            <input type = "text" id="groupTutorRoster" name="groupTutorRoster" placeholder="Yes/No" required>
+            <p class="join-subtitle"><span id = "boldedJoinSub">Don't have a join code?</span> Request one from a Group Admin</p>
+        </div>
+    </div>            
+  </main>
+  <!--Next steps: 
+  * Center the elements on the page 
+  * Start thinking about more accessibility
+  * Start connecting the form to the backend 
+  * Create pages for after form submission
+  * Also have an import feature for teachers to import their existing tutor rosters and tutee rosters in-->
+</body>
+</html>

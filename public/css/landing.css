@@ -1,0 +1,267 @@
+/* =========================
+   RESET
+========================= */
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html,
+body {
+  width: 100%;
+  min-height: 100%;
+}
+
+body {
+  font-family: "Luxurious Roman", serif;
+  background-color: #000;
+}
+
+
+/* =========================
+   HERO SECTION
+========================= */
+
+.hero-section {
+  position: relative;
+  width: 100%;
+  min-height: 100vh;
+  overflow: hidden;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+
+/* =========================
+   BACKGROUND IMAGE
+========================= */
+
+.hero-background {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 0;
+}
+
+.hero-background img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+
+/* Slight dark overlay so the text is easier to read */
+.hero-background::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.15);
+}
+
+
+/* =========================
+   HERO CONTENT
+========================= */
+
+.hero-content {
+  position: relative;
+  z-index: 1;
+
+  width: 100%;
+  min-height: 100vh;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+
+  padding: 40px 30px;
+}
+
+
+/* =========================
+   TITLE
+========================= */
+
+.hero-title {
+  font-family: "Rowdies", sans-serif;
+  font-weight: 800;
+  font-style: normal;
+
+  font-size: clamp(4rem, 8vw, 8rem);
+  line-height: 0.95;
+
+  color: #FFFFFF;
+  text-align: center;
+
+  letter-spacing: 2px;
+
+  /* Black outline like your screenshot */
+  -webkit-text-stroke: 2px #000000;
+
+  text-shadow:
+    3px 3px 0 #000000,
+    -2px -2px 0 #000000,
+    2px -2px 0 #000000,
+    -2px 2px 0 #000000;
+
+  margin-bottom: 70px;
+}
+
+
+/* =========================
+   BUTTON CONTAINER
+========================= */
+
+.hero-buttons {
+  width: 100%;
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  gap: 30px;
+
+  flex-wrap: wrap;
+}
+
+
+/* =========================
+   HERO BUTTONS
+========================= */
+
+.hero-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 180px;
+  min-height: 55px;
+
+  padding: 12px 20px;
+
+  background-color: #2071a7;
+  color: #FFFFFF;
+
+  text-decoration: none;
+
+  font-family: "DM Serif Text", serif;
+  font-size: 1.1rem;
+  font-weight: 600;
+
+  border-radius: 35px;
+
+}
+
+
+/* Hover effect */
+
+.hero-button:hover {
+  background-color: #153f78;
+
+  transform: translateY(-3px);
+
+}
+
+
+/* Click effect */
+
+.hero-button:active {
+  transform: translateY(0);
+}
+
+
+/* =========================
+   TABLET
+========================= */
+
+@media (max-width: 1000px) {
+
+  .hero-title {
+    font-size: clamp(4rem, 9vw, 6.5rem);
+    margin-bottom: 55px;
+  }
+
+  .hero-buttons {
+    gap: 20px;
+  }
+
+  .hero-button {
+    width: 170px;
+    font-size: 1.25rem;
+  }
+}
+
+
+/* =========================
+   MOBILE
+========================= */
+
+@media (max-width: 650px) {
+
+  .hero-section {
+    min-height: 100svh;
+  }
+
+  .hero-content {
+    min-height: 100svh;
+    padding: 30px 20px;
+  }
+
+  .hero-title {
+    font-size: clamp(3.2rem, 15vw, 5rem);
+
+    line-height: 0.95;
+
+    margin-bottom: 45px;
+
+    -webkit-text-stroke: 1.5px #000000;
+
+    text-shadow:
+      2px 2px 0 #000000,
+      -1px -1px 0 #000000,
+      1px -1px 0 #000000,
+      -1px 1px 0 #000000;
+  }
+
+  .hero-buttons {
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  .hero-button {
+    width: min(85vw, 330px);
+    min-height: 52px;
+
+    font-size: 1.2rem;
+  }
+}
+
+
+/* =========================
+   VERY SMALL PHONES
+========================= */
+
+@media (max-width: 400px) {
+
+  .hero-content {
+    padding: 25px 15px;
+  }
+
+  .hero-title {
+    font-size: 3rem;
+    margin-bottom: 35px;
+  }
+
+  .hero-button {
+    width: 90vw;
+    min-height: 48px;
+    font-size: 1.1rem;
+  }
+}
