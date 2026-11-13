@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>Sign Up - JCHS Math Tutoring</title>
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+  <link
+    href="https://fonts.googleapis.com/css2?family=DM+Serif+Text:ital@0;1&family=Rowdies:wght@300;400;700&display=swap"
+    rel="stylesheet"
+  >
+
+  <!-- CSS -->
+  <link rel="stylesheet" href="css/auth.css">
+
+  <!-- Supabase -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+
+<body>
+
+  <div class="container">
+
+    <div class="card signup-card">
+
+      <!-- Back to Login -->
+      <a href="login.html" class="back-button">
+        Back to Login
+      </a>
+
+      <!-- Title -->
+      <h2 id="title">
+        Create Your Account
+      </h2>
+
+      <!-- Alert Messages -->
+      <div id="alert-container"></div>
+
+      <form id="auth-form">
+
+        <!-- =========================
+             BASIC INFORMATION
+        ========================== -->
+
+        <input
+          type="text"
+          id="first-name"
+          class="form-input"
+          placeholder="First Name"
+          autocomplete="given-name"
+          required
+        >
+
+        <input
+          type="text"
+          id="last-name"
+          class="form-input"
+          placeholder="Last Name"
+          autocomplete="family-name"
+          required
+        >
+
+        <input
+          type="text"
+          id="student-id"
+          class="form-input"
+          placeholder="Student ID"
+          autocomplete="off"
+          required
+        >
+
+
+        <!-- =========================
+             ROLE TOGGLE
+        ========================== -->
+
+        <p class="role-question">
+          I am signing up as a...
+        </p>
+
+        <div
+          class="role-toggle"
+          role="group"
+          aria-label="Select your role"
+        >
+
+          <button
+            type="button"
+            class="role-option"
+            id="tutee-btn"
+            data-role="tutee"
+          >
+            Tutee
+          </button>
+
+          <button
+            type="button"
+            class="role-option"
+            id="tutor-btn"
+            data-role="tutor"
+          >
+            Tutor
+          </button>
+
+        </div>
+
+        <input
+          type="hidden"
+          id="role"
+          name="role"
+          required
+        >
+
+
+        <!-- =========================
+             TUTEE QUESTIONS
+        ========================== -->
+
+        <div id="tutee-section" class="role-section">
+
+          <label
+            for="tutee-subject"
+            class="form-label"
+          >
+            What subject do you need help with?
+          </label>
+
+          <select
+            id="tutee-subject"
+            class="form-select"
+          >
+            <option value="" selected disabled>
+              Choose a subject
+            </option>
+
+            <option value="algebra-1">Algebra I</option>
+            <option value="geometry">Geometry</option>
+            <option value="algebra-2">Algebra II</option>
+            <option value="precalculus">Precalculus</option>
+            <option value="calculus-ab">AP Calculus AB</option>
+            <option value="calculus-bc">AP Calculus BC</option>
+            <option value="statistics">AP Statistics</option>
+            <option value="other">Other</option>
+          </select>
+
+        </div>
+
+
+        <!-- =========================
+             TUTOR QUESTIONS
+        ========================== -->
+
+        <div id="tutor-section" class="role-section">
+
+          <label class="form-label">
+            What subject(s) can you tutor?
+          </label>
+
+          <div class="checkbox-group">
+
+            <label class="checkbox-option">
+              <input
+                type="checkbox"
+                name="tutor-subject"
+                value="algebra-1"
+              >
+              <span>Algebra I</span>
+            </label>
+
+            <label class="checkbox-option">
+              <input
+                type="checkbox"
+                name="tutor-subject"
+                value="geometry"
+              >
+              <span>Geometry</span>
+            </label>
+
+            <label class="checkbox-option">
+              <input
+                type="checkbox"
+                name="tutor-subject"
+                value="algebra-2"
+              >
+              <span>Algebra II</span>
+            </label>
+
+            <label class="checkbox-option">
+              <input
+                type="checkbox"
+                name="tutor-subject"
+                value="precalculus"
+              >
+              <span>Precalculus</span>
+            </label>
+
+            <label class="checkbox-option">
+              <input
+                type="checkbox"
+                name="tutor-subject"
+                value="calculus-ab"
+              >
+              <span>AP Calculus AB</span>
+            </label>
+
+            <label class="checkbox-option">
+              <input
+                type="checkbox"
+                name="tutor-subject"
+                value="calculus-bc"
+              >
+              <span>AP Calculus BC</span>
+            </label>
+
+            <label class="checkbox-option">
+              <input
+                type="checkbox"
+                name="tutor-subject"
+                value="statistics"
+              >
+              <span>AP Statistics</span>
+            </label>
+
+          </div>
+
+
+          <!-- =========================
+               AVAILABILITY
+          ========================== -->
+
+          <label class="form-label availability-label">
+            When are you usually available?
+          </label>
+
+          <div class="availability-grid">
+
+            <div class="day-row">
+              <span class="day-name">Monday</span>
+
+              <label>
+                <input type="checkbox" name="availability" value="mon-3">
+                3–4 PM
+              </label>
+
+              <label>
+                <input type="checkbox" name="availability" value="mon-4">
+                4–5 PM
+              </label>
+
+              <label>
+                <input type="checkbox" name="availability" value="mon-5">
+                5–6 PM
+              </label>
+            </div>
+
+            <div class="day-row">
+              <span class="day-name">Tuesday</span>
+
+              <label>
+                <input type="checkbox" name="availability" value="tue-3">
+                3–4 PM
+              </label>
+
+              <label>
+                <input type="checkbox" name="availability" value="tue-4">
+                4–5 PM
+              </label>
+
+              <label>
+                <input type="checkbox" name="availability" value="tue-5">
+                5–6 PM
+              </label>
+            </div>
+
+            <div class="day-row">
+              <span class="day-name">Wednesday</span>
+
+              <label>
+                <input type="checkbox" name="availability" value="wed-3">
+                3–4 PM
+              </label>
+
+              <label>
+                <input type="checkbox" name="availability" value="wed-4">
+                4–5 PM
+              </label>
+
+              <label>
+                <input type="checkbox" name="availability" value="wed-5">
+                5–6 PM
+              </label>
+            </div>
+
+            <div class="day-row">
+              <span class="day-name">Thursday</span>
+
+              <label>
+                <input type="checkbox" name="availability" value="thu-3">
+                3–4 PM
+              </label>
+
+              <label>
+                <input type="checkbox" name="availability" value="thu-4">
+                4–5 PM
+              </label>
+
+              <label>
+                <input type="checkbox" name="availability" value="thu-5">
+                5–6 PM
+              </label>
+            </div>
+
+            <div class="day-row">
+              <span class="day-name">Friday</span>
+
+              <label>
+                <input type="checkbox" name="availability" value="fri-3">
+                3–4 PM
+              </label>
+
+              <label>
+                <input type="checkbox" name="availability" value="fri-4">
+                4–5 PM
+              </label>
+
+              <label>
+                <input type="checkbox" name="availability" value="fri-5">
+                5–6 PM
+              </label>
+            </div>
+
+          </div>
+
+        </div>
+
+
+        <!-- =========================
+             CREATE ACCOUNT
+        ========================== -->
+
+        <button
+          type="submit"
+          id="submit-btn"
+          class="btn-primary"
+        >
+          Create Account
+        </button>
+
+      </form>
+
+
+      <!-- Login Link -->
+      <p id="account-toggle">
+
+        <span class="account-text">
+          Already have an account?
+        </span>
+
+        <a
+          href="login.html"
+          class="toggle-link"
+        >
+          Log In
+        </a>
+
+      </p>
+
+    </div>
+
+  </div>
+
+  <!-- Shared Authentication JavaScript -->
+  <script src="js/login.js"></script>
+
+</body>
+</html>

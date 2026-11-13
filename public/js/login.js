@@ -1,129 +1,479 @@
-// Login Page Script
-var supabase = supabase || null;
-var currentMode = 'signin';
+let supabaseClient = null;
 
-document.addEventListener('DOMContentLoaded', async () => {
+// ============================================================
+// SUPABASE INITIALIZATION
+// ============================================================
+
+async function initializeSupabase() {
     try {
-        const response = await fetch('/api/config');
-        const config = await response.json();
-        
-        supabase = window.supabase.createClient(config.supabaseUrl, config.supabasePublishableKey);
-        const submitBtn = document.getElementById("submit-btn");
-        if (submitBtn) submitBtn.disabled = false;
-    } catch (err) {
-        console.error("Failed to load environment credentials:", err);
-    }
-});
+        const response = await fetch("/api/config");
 
-function setMode(mode) {
-    currentMode = mode;
-    const title = document.getElementById('title');
-    const submitBtn = document.getElementById('submit-btn');
-    const passwordGroup = document.getElementById('password-group');
-    const otpInput = document.getElementById('otp-token');
-    const oauthGroup = document.getElementById('oauth-group');
-    const toggleAuth = document.getElementById('toggle-auth');
-    const passwordInput = document.getElementById('password');
-
-    passwordGroup.classList.remove('hidden');
-    otpInput.classList.add('hidden');
-    oauthGroup.classList.remove('hidden');
-    passwordInput.required = true;
-
-    if (mode === 'signin') {
-        title.innerText = 'Sign In';
-        submitBtn.innerText = 'Log In';
-        toggleAuth.innerText = 'Need an account? Sign Up';
-    } else if (mode === 'signup') {
-        title.innerText = 'Sign Up';
-        submitBtn.innerText = 'Register';
-        toggleAuth.innerText = 'Already have an account? Log In';
-    } else if (mode === 'reset') {
-        title.innerText = 'Reset Password';
-        submitBtn.innerText = 'Send Reset Email';
-        passwordGroup.classList.add('hidden');
-        oauthGroup.classList.add('hidden');
-        passwordInput.required = false;
-        toggleAuth.innerText = '← Back to Log In';
-    } else if (mode === 'otp') {
-        title.innerText = 'OTP Verification';
-        submitBtn.innerText = 'Send OTP Passcode';
-        passwordGroup.classList.add('hidden');
-        oauthGroup.classList.add('hidden');
-        passwordInput.required = false;
-        toggleAuth.innerText = '← Back to Log In';
-    } else if (mode === 'verify-otp') {
-        title.innerText = 'Enter OTP Code';
-        submitBtn.innerText = 'Verify & Log In';
-        passwordGroup.classList.add('hidden');
-        otpInput.classList.remove('hidden');
-        oauthGroup.classList.add('hidden');
-        passwordInput.required = false;
-        toggleAuth.innerText = '← Back to Log In';
-    }
-}
-
-function toggleAuthMode() {
-    if (currentMode === 'signin') {
-        setMode('signup');
-    } else {
-        setMode('signin');
-    }
-}
-
-document.getElementById('auth-form').addEventListener('submit', async (e) => {
-    e.preventDefault();
-    if (!supabase) return alert("System initializing, please wait a moment...");
-
-    const email = document.getElementById('email').value;
-    const password = document.getElementById('password').value;
-    const token = document.getElementById('otp-token').value;
-
-    if (currentMode === 'signup') {
-        const { data, error } = await supabase.auth.signUp({ email, password });
-        if (error) return alert(error.message);
-        
-        if (data.session) {
-            handleAuthSuccess(data.session.access_token);
-        } else {
-            alert("Check your email for the confirmation link!");
+        if (!response.ok) {
+            throw new Error("Could not load server configuration.");
         }
-    } else if (currentMode === 'signin') {
-        const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-        if (error) return alert(error.message);
-        handleAuthSuccess(data.session.access_token);
-    } else if (currentMode === 'reset') {
-        const { error } = await supabase.auth.resetPasswordForEmail(email, {
-            redirectTo: window.location.origin + '/auth/verify'
-        });
-        if (error) return alert(error.message);
-        alert("Password reset email sent! Check your inbox.");
-        setMode('signin');
-    } else if (currentMode === 'otp') {
-        const { error } = await supabase.auth.signInWithOtp({ email });
-        if (error) return alert(error.message);
-        alert("A one-time passcode has been sent to your email!");
-        setMode('verify-otp');
-    } else if (currentMode === 'verify-otp') {
-        const { data, error } = await supabase.auth.verifyOtp({
-            email,
-            token,
-            type: 'email'
-        });
-        if (error) return alert(error.message);
-        handleAuthSuccess(data.session.access_token);
+
+        const config = await response.json();
+
+        supabaseClient = window.supabase.createClient(
+            config.supabaseUrl,
+            config.supabasePublishableKey
+        );
+
+        return true;
+
+    } catch (error) {
+        console.error("Supabase initialization error:", error);
+
+        showAlert(
+            "Unable to connect to the server.",
+            "error"
+        );
+
+        return false;
     }
-});
+}
 
-async function loginWithOAuth(provider) {
-    if (!supabase) return alert("System initializing, please wait a moment...");
-    const { error } = await supabase.auth.signInWithOAuth({
-        provider: provider,
-        options: { redirectTo: window.location.origin + '/auth/verify' }
+// ============================================================
+// ALERTS
+// ============================================================
+
+function showAlert(message, type = "error") {
+    const container = document.getElementById("alert-container");
+
+    if (!container) return;
+
+    container.innerHTML = `
+        <div class="alert ${type}">
+            ${message}
+        </div>
+    `;
+}
+
+// ============================================================
+// PAGE INITIALIZATION
+// ============================================================
+
+document.addEventListener("DOMContentLoaded", async () => {
+
+    console.log("login.js loaded");
+
+    const form = document.getElementById("auth-form");
+
+    if (!form) {
+        console.error("Could not find #auth-form");
+        return;
+    }
+
+    await initializeSupabase();
+
+    // ========================================================
+    // ROLE TOGGLE
+    // ========================================================
+
+    const tutorBtn = document.getElementById("tutor-btn");
+    const tuteeBtn = document.getElementById("tutee-btn");
+
+    const tutorSection = document.getElementById("tutor-section");
+    const tuteeSection = document.getElementById("tutee-section");
+
+    const roleInput = document.getElementById("role");
+
+    function selectRole(role) {
+
+        if (!roleInput) return;
+
+        roleInput.value = role;
+
+        if (tutorBtn) {
+            tutorBtn.classList.toggle(
+                "active",
+                role === "tutor"
+            );
+        }
+
+        if (tuteeBtn) {
+            tuteeBtn.classList.toggle(
+                "active",
+                role === "tutee"
+            );
+        }
+
+        if (tutorSection) {
+            tutorSection.classList.toggle(
+                "active",
+                role === "tutor"
+            );
+        }
+
+        if (tuteeSection) {
+            tuteeSection.classList.toggle(
+                "active",
+                role === "tutee"
+            );
+        }
+
+        const tuteeSubject =
+            document.getElementById("tutee-subject");
+
+        if (tuteeSubject) {
+            tuteeSubject.required =
+                role === "tutee";
+        }
+    }
+
+    if (tutorBtn) {
+        tutorBtn.addEventListener(
+            "click",
+            () => selectRole("tutor")
+        );
+    }
+
+    if (tuteeBtn) {
+        tuteeBtn.addEventListener(
+            "click",
+            () => selectRole("tutee")
+        );
+    }
+
+    // ========================================================
+    // FORM SUBMISSION
+    // ========================================================
+
+    form.addEventListener("submit", async (event) => {
+
+        event.preventDefault();
+
+        console.log("Form submitted");
+
+        // ====================================================
+        // LOGIN PAGE
+        // ====================================================
+
+        const firstNameElement =
+            document.getElementById("first-name");
+
+        const lastNameElement =
+            document.getElementById("last-name");
+
+        const studentIdElement =
+            document.getElementById("student-id");
+
+        const firstName =
+            firstNameElement?.value.trim();
+
+        const lastName =
+            lastNameElement?.value.trim();
+
+        const studentId =
+            studentIdElement?.value.trim();
+
+        // ====================================================
+        // DETERMINE WHETHER THIS IS LOGIN OR SIGNUP
+        // ====================================================
+
+        const isSignup =
+            !!firstNameElement &&
+            !!lastNameElement &&
+            !!roleInput;
+
+        // ====================================================
+        // LOGIN
+        // ====================================================
+
+        if (!isSignup) {
+
+            if (!studentId) {
+                showAlert(
+                    "Please enter your Student ID.",
+                    "error"
+                );
+
+                return;
+            }
+
+            const submitButton =
+                document.getElementById("submit-btn");
+
+            if (submitButton) {
+                submitButton.disabled = true;
+                submitButton.textContent = "Logging In...";
+            }
+
+            try {
+
+                const response = await fetch(
+                    "/api/login",
+                    {
+                        method: "POST",
+
+                        headers: {
+                            "Content-Type":
+                                "application/json"
+                        },
+
+                        body: JSON.stringify({
+                            studentId
+                        })
+                    }
+                );
+
+                const result =
+                    await response.json();
+
+                if (!response.ok) {
+                    throw new Error(
+                        result.error ||
+                        "Unable to log in."
+                    );
+                }
+
+                showAlert(
+                    "Login successful! Redirecting...",
+                    "success"
+                );
+
+                setTimeout(() => {
+
+                    window.location.href =
+                        result.redirect ||
+                        `/dashboard?id=${result.profile.id}`;
+
+                }, 500);
+
+            } catch (error) {
+
+                console.error(
+                    "Login error:",
+                    error
+                );
+
+                showAlert(
+                    error.message ||
+                    "Something went wrong while logging in.",
+                    "error"
+                );
+
+                if (submitButton) {
+                    submitButton.disabled = false;
+                    submitButton.textContent = "Log In";
+                }
+            }
+
+            return;
+        }
+
+        // ====================================================
+        // SIGNUP
+        // ====================================================
+
+        console.log("Create Account clicked");
+
+        const role = roleInput?.value;
+
+        if (!firstName || !lastName || !studentId) {
+
+            showAlert(
+                "Please fill out all required fields.",
+                "error"
+            );
+
+            return;
+        }
+
+        if (!role) {
+
+            showAlert(
+                "Please select whether you are a Tutor or Tutee.",
+                "error"
+            );
+
+            return;
+        }
+
+        if (!supabaseClient) {
+
+            showAlert(
+                "Unable to connect to the server.",
+                "error"
+            );
+
+            return;
+        }
+
+        const submitButton =
+            document.getElementById("submit-btn");
+
+        if (submitButton) {
+            submitButton.disabled = true;
+            submitButton.textContent =
+                "Creating Account...";
+        }
+
+        try {
+
+            // =================================================
+            // TUTEE DATA
+            // =================================================
+
+            let tuteeSubject = null;
+
+            if (role === "tutee") {
+
+                tuteeSubject =
+                    document.getElementById(
+                        "tutee-subject"
+                    )?.value;
+
+                if (!tuteeSubject) {
+                    throw new Error(
+                        "Please choose a subject."
+                    );
+                }
+            }
+
+            // =================================================
+            // TUTOR DATA
+            // =================================================
+
+            let tutorSubjects = [];
+            let availability = [];
+
+            if (role === "tutor") {
+
+                tutorSubjects = [
+                    ...document.querySelectorAll(
+                        'input[name="tutor-subject"]:checked'
+                    )
+                ].map(input => input.value);
+
+                if (tutorSubjects.length === 0) {
+                    throw new Error(
+                        "Please select at least one subject you can tutor."
+                    );
+                }
+
+                availability = [
+                    ...document.querySelectorAll(
+                        'input[name="availability"]:checked'
+                    )
+                ].map(input => input.value);
+
+                if (availability.length === 0) {
+                    throw new Error(
+                        "Please select at least one availability time."
+                    );
+                }
+            }
+
+            // =================================================
+            // SEND SIGNUP REQUEST
+            // =================================================
+
+            const response = await fetch(
+                "/api/signup",
+                {
+                    method: "POST",
+
+                    headers: {
+                        "Content-Type":
+                            "application/json"
+                    },
+
+                    body: JSON.stringify({
+                        firstName,
+                        lastName,
+                        studentId,
+                        role,
+                        tuteeSubject,
+                        tutorSubjects,
+                        availability
+                    })
+                }
+            );
+
+            const result =
+                await response.json();
+
+            // =================================================
+            // ACCOUNT ALREADY EXISTS
+            // =================================================
+
+            if (
+                response.status === 409 &&
+                result.accountExists
+            ) {
+
+                showAlert(
+                    `${result.error}
+                    <a
+                        href="/login"
+                        style="
+                            color: inherit;
+                            font-weight: 700;
+                            text-decoration: underline;
+                            margin-left: 4px;
+                        "
+                    >
+                        Log In
+                    </a>`,
+                    "error"
+                );
+
+                if (submitButton) {
+                    submitButton.disabled = false;
+                    submitButton.textContent =
+                        "Create Account";
+                }
+
+                return;
+            }
+
+            // =================================================
+            // OTHER SERVER ERRORS
+            // =================================================
+
+            if (!response.ok) {
+
+                throw new Error(
+                    result.error ||
+                    "Unable to create your account."
+                );
+            }
+
+            // =================================================
+            // SUCCESS
+            // =================================================
+
+            showAlert(
+                "Account created successfully! Redirecting...",
+                "success"
+            );
+
+            setTimeout(() => {
+
+                window.location.href =
+                    "/onboarding";
+
+            }, 1000);
+
+        } catch (error) {
+
+            console.error(
+                "Signup error:",
+                error
+            );
+
+            showAlert(
+                error.message ||
+                "Something went wrong.",
+                "error"
+            );
+
+            if (submitButton) {
+                submitButton.disabled = false;
+                submitButton.textContent =
+                    "Create Account";
+            }
+        }
     });
-    if (error) alert(error.message);
-}
-
-function handleAuthSuccess(accessToken) {
-    window.location.href = `/auth/verify?token=${accessToken}`;
-}
+});
