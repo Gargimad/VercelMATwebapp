@@ -1,479 +1,514 @@
-let supabaseClient = null;
+const form =
+    document.getElementById(
+        "auth-form"
+    );
+
+const alertContainer =
+    document.getElementById(
+        "alert-container"
+    );
+
+const submitButton =
+    document.getElementById(
+        "submit-btn"
+    );
+
 
 // ============================================================
-// SUPABASE INITIALIZATION
+// SIGNUP ROLE UI
 // ============================================================
 
-async function initializeSupabase() {
-    try {
-        const response = await fetch("/api/config");
+const tutorButton =
+    document.getElementById(
+        "tutor-btn"
+    );
 
-        if (!response.ok) {
-            throw new Error("Could not load server configuration.");
-        }
+const tuteeButton =
+    document.getElementById(
+        "tutee-btn"
+    );
 
-        const config = await response.json();
+const roleInput =
+    document.getElementById(
+        "role"
+    );
 
-        supabaseClient = window.supabase.createClient(
-            config.supabaseUrl,
-            config.supabasePublishableKey
-        );
+const tutorSection =
+    document.getElementById(
+        "tutor-section"
+    );
 
-        return true;
+const tuteeSection =
+    document.getElementById(
+        "tutee-section"
+    );
 
-    } catch (error) {
-        console.error("Supabase initialization error:", error);
 
-        showAlert(
-            "Unable to connect to the server.",
-            "error"
-        );
+function selectRole(
+    role
+) {
 
-        return false;
-    }
-}
-
-// ============================================================
-// ALERTS
-// ============================================================
-
-function showAlert(message, type = "error") {
-    const container = document.getElementById("alert-container");
-
-    if (!container) return;
-
-    container.innerHTML = `
-        <div class="alert ${type}">
-            ${message}
-        </div>
-    `;
-}
-
-// ============================================================
-// PAGE INITIALIZATION
-// ============================================================
-
-document.addEventListener("DOMContentLoaded", async () => {
-
-    console.log("login.js loaded");
-
-    const form = document.getElementById("auth-form");
-
-    if (!form) {
-        console.error("Could not find #auth-form");
+    if (!roleInput) {
         return;
     }
 
-    await initializeSupabase();
 
-    // ========================================================
-    // ROLE TOGGLE
-    // ========================================================
+    roleInput.value =
+        role;
 
-    const tutorBtn = document.getElementById("tutor-btn");
-    const tuteeBtn = document.getElementById("tutee-btn");
 
-    const tutorSection = document.getElementById("tutor-section");
-    const tuteeSection = document.getElementById("tutee-section");
+    if (tutorButton) {
 
-    const roleInput = document.getElementById("role");
-
-    function selectRole(role) {
-
-        if (!roleInput) return;
-
-        roleInput.value = role;
-
-        if (tutorBtn) {
-            tutorBtn.classList.toggle(
-                "active",
-                role === "tutor"
-            );
-        }
-
-        if (tuteeBtn) {
-            tuteeBtn.classList.toggle(
-                "active",
-                role === "tutee"
-            );
-        }
-
-        if (tutorSection) {
-            tutorSection.classList.toggle(
-                "active",
-                role === "tutor"
-            );
-        }
-
-        if (tuteeSection) {
-            tuteeSection.classList.toggle(
-                "active",
-                role === "tutee"
-            );
-        }
-
-        const tuteeSubject =
-            document.getElementById("tutee-subject");
-
-        if (tuteeSubject) {
-            tuteeSubject.required =
-                role === "tutee";
-        }
-    }
-
-    if (tutorBtn) {
-        tutorBtn.addEventListener(
-            "click",
-            () => selectRole("tutor")
+        tutorButton.classList.toggle(
+            "active",
+            role === "tutor"
         );
+
     }
 
-    if (tuteeBtn) {
-        tuteeBtn.addEventListener(
-            "click",
-            () => selectRole("tutee")
+
+    if (tuteeButton) {
+
+        tuteeButton.classList.toggle(
+            "active",
+            role === "tutee"
         );
+
     }
 
-    // ========================================================
-    // FORM SUBMISSION
-    // ========================================================
 
-    form.addEventListener("submit", async (event) => {
+    if (tutorSection) {
 
-        event.preventDefault();
+        tutorSection.classList.toggle(
+            "active",
+            role === "tutor"
+        );
 
-        console.log("Form submitted");
+    }
 
-        // ====================================================
-        // LOGIN PAGE
-        // ====================================================
 
-        const firstNameElement =
-            document.getElementById("first-name");
+    if (tuteeSection) {
 
-        const lastNameElement =
-            document.getElementById("last-name");
+        tuteeSection.classList.toggle(
+            "active",
+            role === "tutee"
+        );
 
-        const studentIdElement =
-            document.getElementById("student-id");
+    }
 
-        const firstName =
-            firstNameElement?.value.trim();
+}
 
-        const lastName =
-            lastNameElement?.value.trim();
 
-        const studentId =
-            studentIdElement?.value.trim();
+if (tutorButton) {
 
-        // ====================================================
-        // DETERMINE WHETHER THIS IS LOGIN OR SIGNUP
-        // ====================================================
+    tutorButton.addEventListener(
+        "click",
+        () => {
 
-        const isSignup =
-            !!firstNameElement &&
-            !!lastNameElement &&
-            !!roleInput;
+            selectRole(
+                "tutor"
+            );
 
-        // ====================================================
-        // LOGIN
-        // ====================================================
+        }
+    );
 
-        if (!isSignup) {
+}
 
-            if (!studentId) {
-                showAlert(
-                    "Please enter your Student ID.",
-                    "error"
+
+if (tuteeButton) {
+
+    tuteeButton.addEventListener(
+        "click",
+        () => {
+
+            selectRole(
+                "tutee"
+            );
+
+        }
+    );
+
+}
+
+
+// ============================================================
+// FORM SUBMISSION
+// ============================================================
+
+if (form) {
+
+    form.addEventListener(
+        "submit",
+        async event => {
+
+            event.preventDefault();
+
+
+            clearAlert();
+
+
+            const isSignup =
+                Boolean(
+                    document.getElementById(
+                        "first-name"
+                    )
                 );
 
-                return;
-            }
 
-            const submitButton =
-                document.getElementById("submit-btn");
+            submitButton.disabled =
+                true;
 
-            if (submitButton) {
-                submitButton.disabled = true;
-                submitButton.textContent = "Logging In...";
-            }
+
+            submitButton.textContent =
+                isSignup
+                    ? "Creating Account..."
+                    : "Logging In...";
+
 
             try {
 
-                const response = await fetch(
-                    "/api/login",
-                    {
-                        method: "POST",
+                if (isSignup) {
 
-                        headers: {
-                            "Content-Type":
-                                "application/json"
-                        },
+                    await signup();
 
-                        body: JSON.stringify({
-                            studentId
-                        })
-                    }
-                );
+                } else {
 
-                const result =
-                    await response.json();
+                    await login();
 
-                if (!response.ok) {
-                    throw new Error(
-                        result.error ||
-                        "Unable to log in."
-                    );
                 }
-
-                showAlert(
-                    "Login successful! Redirecting...",
-                    "success"
-                );
-
-                setTimeout(() => {
-
-                    window.location.href =
-                        result.redirect ||
-                        `/dashboard?id=${result.profile.id}`;
-
-                }, 500);
 
             } catch (error) {
 
                 console.error(
-                    "Login error:",
                     error
                 );
 
                 showAlert(
                     error.message ||
-                    "Something went wrong while logging in.",
+                    "Something went wrong.",
                     "error"
                 );
 
-                if (submitButton) {
-                    submitButton.disabled = false;
-                    submitButton.textContent = "Log In";
-                }
-            }
+            } finally {
 
-            return;
-        }
+                submitButton.disabled =
+                    false;
 
-        // ====================================================
-        // SIGNUP
-        // ====================================================
-
-        console.log("Create Account clicked");
-
-        const role = roleInput?.value;
-
-        if (!firstName || !lastName || !studentId) {
-
-            showAlert(
-                "Please fill out all required fields.",
-                "error"
-            );
-
-            return;
-        }
-
-        if (!role) {
-
-            showAlert(
-                "Please select whether you are a Tutor or Tutee.",
-                "error"
-            );
-
-            return;
-        }
-
-        if (!supabaseClient) {
-
-            showAlert(
-                "Unable to connect to the server.",
-                "error"
-            );
-
-            return;
-        }
-
-        const submitButton =
-            document.getElementById("submit-btn");
-
-        if (submitButton) {
-            submitButton.disabled = true;
-            submitButton.textContent =
-                "Creating Account...";
-        }
-
-        try {
-
-            // =================================================
-            // TUTEE DATA
-            // =================================================
-
-            let tuteeSubject = null;
-
-            if (role === "tutee") {
-
-                tuteeSubject =
-                    document.getElementById(
-                        "tutee-subject"
-                    )?.value;
-
-                if (!tuteeSubject) {
-                    throw new Error(
-                        "Please choose a subject."
-                    );
-                }
-            }
-
-            // =================================================
-            // TUTOR DATA
-            // =================================================
-
-            let tutorSubjects = [];
-            let availability = [];
-
-            if (role === "tutor") {
-
-                tutorSubjects = [
-                    ...document.querySelectorAll(
-                        'input[name="tutor-subject"]:checked'
-                    )
-                ].map(input => input.value);
-
-                if (tutorSubjects.length === 0) {
-                    throw new Error(
-                        "Please select at least one subject you can tutor."
-                    );
-                }
-
-                availability = [
-                    ...document.querySelectorAll(
-                        'input[name="availability"]:checked'
-                    )
-                ].map(input => input.value);
-
-                if (availability.length === 0) {
-                    throw new Error(
-                        "Please select at least one availability time."
-                    );
-                }
-            }
-
-            // =================================================
-            // SEND SIGNUP REQUEST
-            // =================================================
-
-            const response = await fetch(
-                "/api/signup",
-                {
-                    method: "POST",
-
-                    headers: {
-                        "Content-Type":
-                            "application/json"
-                    },
-
-                    body: JSON.stringify({
-                        firstName,
-                        lastName,
-                        studentId,
-                        role,
-                        tuteeSubject,
-                        tutorSubjects,
-                        availability
-                    })
-                }
-            );
-
-            const result =
-                await response.json();
-
-            // =================================================
-            // ACCOUNT ALREADY EXISTS
-            // =================================================
-
-            if (
-                response.status === 409 &&
-                result.accountExists
-            ) {
-
-                showAlert(
-                    `${result.error}
-                    <a
-                        href="/login"
-                        style="
-                            color: inherit;
-                            font-weight: 700;
-                            text-decoration: underline;
-                            margin-left: 4px;
-                        "
-                    >
-                        Log In
-                    </a>`,
-                    "error"
-                );
-
-                if (submitButton) {
-                    submitButton.disabled = false;
-                    submitButton.textContent =
-                        "Create Account";
-                }
-
-                return;
-            }
-
-            // =================================================
-            // OTHER SERVER ERRORS
-            // =================================================
-
-            if (!response.ok) {
-
-                throw new Error(
-                    result.error ||
-                    "Unable to create your account."
-                );
-            }
-
-            // =================================================
-            // SUCCESS
-            // =================================================
-
-            showAlert(
-                "Account created successfully! Redirecting...",
-                "success"
-            );
-
-            setTimeout(() => {
-
-                window.location.href =
-                    "/onboarding";
-
-            }, 1000);
-
-        } catch (error) {
-
-            console.error(
-                "Signup error:",
-                error
-            );
-
-            showAlert(
-                error.message ||
-                "Something went wrong.",
-                "error"
-            );
-
-            if (submitButton) {
-                submitButton.disabled = false;
                 submitButton.textContent =
-                    "Create Account";
+                    isSignup
+                        ? "Create Account"
+                        : "Log In";
+
             }
+
         }
-    });
-});
+    );
+
+}
+
+
+// ============================================================
+// SIGNUP
+// ============================================================
+
+async function signup() {
+
+    const firstName =
+        document.getElementById(
+            "first-name"
+        ).value.trim();
+
+
+    const lastName =
+        document.getElementById(
+            "last-name"
+        ).value.trim();
+
+
+    const studentId =
+        document.getElementById(
+            "student-id"
+        ).value.trim();
+
+
+    const role =
+        document.getElementById(
+            "role"
+        ).value;
+
+
+    if (!role) {
+
+        throw new Error(
+            "Please choose whether you are signing up as a tutor or tutee."
+        );
+
+    }
+
+
+    let tuteeSubject =
+        null;
+
+
+    let tutorSubjects = [];
+
+
+    let availability = [];
+
+
+    if (role === "tutee") {
+
+        tuteeSubject =
+            document.getElementById(
+                "tutee-subject"
+            )?.value;
+
+
+        if (!tuteeSubject) {
+
+            throw new Error(
+                "Please choose the subject you need help with."
+            );
+
+        }
+
+    }
+
+
+    if (role === "tutor") {
+
+        tutorSubjects =
+            Array.from(
+                document.querySelectorAll(
+                    'input[name="tutor-subject"]:checked'
+                )
+            ).map(
+                checkbox =>
+                    checkbox.value
+            );
+
+
+        availability =
+            Array.from(
+                document.querySelectorAll(
+                    'input[name="availability"]:checked'
+                )
+            ).map(
+                checkbox =>
+                    checkbox.value
+            );
+
+
+        if (
+            tutorSubjects.length === 0
+        ) {
+
+            throw new Error(
+                "Please choose at least one subject you can tutor."
+            );
+
+        }
+
+
+        if (
+            availability.length === 0
+        ) {
+
+            throw new Error(
+                "Please choose at least one availability time."
+            );
+
+        }
+
+    }
+
+
+    const response =
+        await fetch(
+            "/api/signup",
+            {
+
+                method: "POST",
+
+                headers: {
+                    "Content-Type":
+                        "application/json"
+                },
+
+                body: JSON.stringify({
+
+                    firstName,
+
+                    lastName,
+
+                    studentId,
+
+                    role,
+
+                    tuteeSubject,
+
+                    tutorSubjects,
+
+                    availability
+
+                })
+
+            }
+        );
+
+
+    const result =
+        await response.json();
+
+
+    if (!response.ok) {
+
+        throw new Error(
+            result.error ||
+            "Unable to create account."
+        );
+
+    }
+
+
+    showAlert(
+        "Account created! Redirecting...",
+        "success"
+    );
+
+
+    setTimeout(
+        () => {
+
+            window.location.href =
+                `/dashboard?id=${result.profile.id}`;
+
+        },
+        700
+    );
+
+}
+
+
+// ============================================================
+// LOGIN
+// ============================================================
+
+async function login() {
+
+    const studentId =
+        document.getElementById(
+            "student-id"
+        ).value.trim();
+
+
+    if (!studentId) {
+
+        throw new Error(
+            "Please enter your Student ID."
+        );
+
+    }
+
+
+    const response =
+        await fetch(
+            "/api/login",
+            {
+
+                method: "POST",
+
+                headers: {
+                    "Content-Type":
+                        "application/json"
+                },
+
+                body: JSON.stringify({
+                    studentId
+                })
+
+            }
+        );
+
+
+    const result =
+        await response.json();
+
+
+    if (!response.ok) {
+
+        throw new Error(
+            result.error ||
+            "Unable to log in."
+        );
+
+    }
+
+
+    showAlert(
+        "Login successful! Redirecting...",
+        "success"
+    );
+
+
+    setTimeout(
+        () => {
+
+            window.location.href =
+                `/dashboard?id=${result.profile.id}`;
+
+        },
+        500
+    );
+
+}
+
+
+// ============================================================
+// ALERT
+// ============================================================
+
+function showAlert(
+    message,
+    type
+) {
+
+    if (!alertContainer) {
+        return;
+    }
+
+
+    alertContainer.innerHTML = "";
+
+
+    const alert =
+        document.createElement(
+            "div"
+        );
+
+
+    alert.className =
+        `alert ${type}`;
+
+
+    alert.textContent =
+        message;
+
+
+    alertContainer.appendChild(
+        alert
+    );
+
+}
+
+
+function clearAlert() {
+
+    if (alertContainer) {
+
+        alertContainer.innerHTML =
+            "";
+
+    }
+
+}
